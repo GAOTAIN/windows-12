@@ -5,7 +5,7 @@ global.initWorkspaceUI=function(runtime){
   const fs=global.DesktopFS;
   const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const context=$('#context-menu');
-  let selectedDesktop=null,clipboard=null,renameActive=false;
+  let selectedDesktop=null,clipboard=null,renameActive=false,cancelFileDrag=null;
   const roots=[['desktop','桌面','monitor'],['documents','文档','document'],['pictures','图片','image'],['downloads','下载','download']];
   const names={folder:'文件夹',text:'文本文档',shortcut:'快捷方式',image:'SVG 图像'};
   const iconOf=node=>node.kind==='folder'?'files':node.kind==='text'?'text':node.kind==='image'?'photos':node.target?.type==='app'?node.target.value:'files';
@@ -14,7 +14,13 @@ global.initWorkspaceUI=function(runtime){
   function safely(action){try{return action();}catch(error){toast(error.message||'操作失败，请重试。');return null;}}
   function dateLabel(value){return new Date(value).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});}
   function sizeLabel(node){if(node.kind==='folder')return'—';if(node.kind==='shortcut')return'1 KB';const size=new Blob([node.content||'']).size;return size<1024?size+' B':Math.ceil(size/1024)+' KB';}
-  function updateDesktopRows(){const top=parseFloat(getComputedStyle($('#desktop-icons')).top)||24;const bottom=$('#taskbar').getBoundingClientRect().top-12;document.documentElement.style.setProperty('--desktop-rows',Math.max(1,Math.floor((bottom-top+6)/104)));}
+  function updateDesktopRows(){
+    const host=$('#desktop-icons'),style=getComputedStyle(host),top=parseFloat(style.top)||24;
+    const available=$('#taskbar').getBoundingClientRect().top-12-top;
+    const gap=parseFloat(style.rowGap)||6,padding=(parseFloat(style.paddingTop)||0)+(parseFloat(style.paddingBottom)||0);
+    document.documentElement.style.setProperty('--desktop-rows',Math.max(1,Math.floor((available-padding+gap)/(98+gap))));
+    host.style.maxHeight=Math.max(98+padding,available)+'px';host.scrollTop=0;
+  }
   function renderDesktop(){
     const host=$('#desktop-icons');$$('.desktop-item',host).forEach(el=>el.remove());
     for(const node of fs.list('desktop')){
@@ -25,9 +31,82 @@ global.initWorkspaceUI=function(runtime){
       item.ondblclick=event=>{if(!event.target.closest('input'))openNode(node.id);};
       item.onkeydown=event=>{if(event.target.closest('input'))return;if(event.key==='Enter'){event.preventDefault();event.stopPropagation();openNode(node.id);}};
       item.oncontextmenu=event=>{selectDesktop(node.id);showContext(event,{parentId:'desktop',id:node.id,scope:'desktop'});};
+      bindFileDrag(item,node.id,()=>selectDesktop(node.id));
       host.append(item);
     }
     updateDesktopRows();
+  }
+  // Pointer capture keeps the file attached to the cursor across desktop/window boundaries.
+  // Only an exposed recycle target accepts a drop; every other release leaves files unchanged.
+  function bindFileDrag(source,id,select){
+    source.classList.add('file-draggable');
+    source.addEventListener('dragstart',event=>event.preventDefault());
+    source.addEventListener('pointerdown',event=>{
+      if(event.button!==0||event.isPrimary===false||renameActive||document.body.classList.contains('is-locked')||event.target.closest('input,textarea,button,select,[contenteditable]'))return;
+      const node=fs.get(id);if(!node||fs.isRoot(id)||fs.isTrashed(id))return;
+      cancelFileDrag?.();
+      const startX=event.clientX,startY=event.clientY,pointerId=event.pointerId;
+      let moved=false,finished=false,ghost=null,dropTarget=null;
+      function targetAt(x,y){
+        const hit=document.elementFromPoint(x,y);
+        return hit?.closest('#desktop-icons>.desktop-icon[data-app="recycle"],.window[data-app="recycle"] .window-content')||null;
+      }
+      function updateTarget(next){
+        if(dropTarget===next)return;
+        dropTarget?.classList.remove('recycle-drop-target');dropTarget=next;
+        dropTarget?.classList.add('recycle-drop-target');
+        ghost?.classList.toggle('can-drop',!!dropTarget);
+        if(ghost)$('.file-drag-action',ghost).textContent=dropTarget?'移到 回收站':'拖到回收站以删除';
+      }
+      function move(current){
+        if(current.pointerId!==pointerId||finished)return;
+        if(!moved&&Math.hypot(current.clientX-startX,current.clientY-startY)<6)return;
+        current.preventDefault();
+        if(!source.isConnected||document.body.classList.contains('is-locked')){finish(false);return;}
+        if(!moved){
+          moved=true;select();closeOverlays();source.classList.add('file-drag-source');
+          document.body.classList.add('file-dragging');
+          ghost=document.createElement('div');ghost.className='glass file-drag-preview';ghost.setAttribute('aria-hidden','true');
+          ghost.innerHTML=nodeArt(node)+`<div><strong>${escape(node.name)}</strong><span class="file-drag-action">拖到回收站以删除</span></div>`;
+          document.body.append(ghost);source.setPointerCapture(pointerId);
+          $('#file-drag-status').textContent='正在拖动“'+node.name+'”，拖到回收站删除，按 Escape 取消。';
+        }
+        // Clamp the preview independently of hit testing, so edge targets remain usable.
+        const x=Math.max(8,Math.min(current.clientX+18,innerWidth-ghost.offsetWidth-8));
+        const y=Math.max(8,Math.min(current.clientY+18,innerHeight-ghost.offsetHeight-8));
+        ghost.style.left=x+'px';ghost.style.top=y+'px';
+        updateTarget(targetAt(current.clientX,current.clientY));
+      }
+      function suppressClick(event){event.preventDefault();event.stopImmediatePropagation();}
+      function finish(accept,current){
+        if(finished)return;finished=true;
+        const destination=accept&&moved&&current&&targetAt(current.clientX,current.clientY);
+        document.removeEventListener('pointermove',move,true);document.removeEventListener('pointerup',up,true);
+        document.removeEventListener('pointercancel',cancel,true);document.removeEventListener('keydown',key,true);
+        window.removeEventListener('blur',cancel);window.removeEventListener('resize',cancel);
+        source.removeEventListener('lostpointercapture',cancel);
+        if(source.hasPointerCapture(pointerId))source.releasePointerCapture(pointerId);
+        source.classList.remove('file-drag-source');document.body.classList.remove('file-dragging');
+        dropTarget?.classList.remove('recycle-drop-target');ghost?.remove();cancelFileDrag=null;
+        if(moved){
+          // The release must not activate the source icon or open the recycle bin.
+          document.addEventListener('click',suppressClick,true);
+          setTimeout(()=>document.removeEventListener('click',suppressClick,true),0);
+          $('#file-drag-status').textContent=destination?'已放入回收站。':'拖动已取消，项目保留在原位置。';
+          if(destination&&!document.body.classList.contains('is-locked')&&!fs.isTrashed(id))removeNode(id);
+        }
+      }
+      function up(current){if(current.pointerId===pointerId)finish(true,current);}
+      function cancel(current){if(current?.pointerId!==undefined&&current.pointerId!==pointerId)return;finish(false);}
+      function key(current){
+        if(current.key==='Escape'){current.preventDefault();current.stopImmediatePropagation();finish(false);}
+        else if(moved){current.preventDefault();current.stopImmediatePropagation();}
+      }
+      cancelFileDrag=()=>finish(false);
+      document.addEventListener('pointermove',move,{capture:true,passive:false});document.addEventListener('pointerup',up,true);
+      document.addEventListener('pointercancel',cancel,true);document.addEventListener('keydown',key,true);
+      source.addEventListener('lostpointercapture',cancel);window.addEventListener('blur',cancel);window.addEventListener('resize',cancel);
+    });
   }
   function selectDesktop(id){selectedDesktop=id;$$('.desktop-item').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.nodeId===id)));}
   function focusItem(id,scope){requestAnimationFrame(()=>{const host=scope==='desktop'?$('#desktop-icons'):windows.get('files')?.content;host?.querySelector(`[data-node-id="${id}"]`)?.focus({preventScroll:false});});}
@@ -140,7 +219,7 @@ global.initWorkspaceUI=function(runtime){
     $('.files-refresh',win.content).onclick=()=>{renderFiles(win,win.folder,false);toast('文件已刷新');};
     $('.files-new',win.content).onclick=event=>showCreateMenu(event.currentTarget,parentId,'files');
     function selectFile(id){win.selectedFileId=id;$$('tr[data-node-id]',win.content).forEach(row=>row.classList.toggle('selected',row.dataset.nodeId===id));$$('[data-file-command]',win.content).forEach(button=>{if(button.dataset.fileCommand!=='paste')button.disabled=!id;});$('.explorer-status span',win.content).textContent=fs.get(id)?'已选择 '+fs.get(id).name:items.length+' 个项目';}
-    $$('tr[data-node-id]',win.content).forEach(row=>{row.onclick=event=>{if(!event.target.closest('input'))selectFile(row.dataset.nodeId);};row.ondblclick=event=>{if(!event.target.closest('input'))openNode(row.dataset.nodeId);};row.onkeydown=event=>{if(event.key==='Enter'&&!event.target.closest('input')){event.preventDefault();event.stopPropagation();openNode(row.dataset.nodeId);}};row.oncontextmenu=event=>{selectFile(row.dataset.nodeId);showContext(event,{parentId,id:row.dataset.nodeId,scope:'files'});};});
+    $$('tr[data-node-id]',win.content).forEach(row=>{row.onclick=event=>{if(!event.target.closest('input'))selectFile(row.dataset.nodeId);};row.ondblclick=event=>{if(!event.target.closest('input'))openNode(row.dataset.nodeId);};row.onkeydown=event=>{if(event.key==='Enter'&&!event.target.closest('input')){event.preventDefault();event.stopPropagation();openNode(row.dataset.nodeId);}};row.oncontextmenu=event=>{selectFile(row.dataset.nodeId);showContext(event,{parentId,id:row.dataset.nodeId,scope:'files'});};bindFileDrag(row,row.dataset.nodeId,()=>selectFile(row.dataset.nodeId));});
     $('.explorer-main',win.content).oncontextmenu=event=>{if(!event.target.closest('input'))showContext(event,{parentId,scope:'files'});};
     $$('[data-file-command]',win.content).forEach(button=>button.onclick=()=>{const id=win.selectedFileId;switch(button.dataset.fileCommand){case'cut':copyNode(id,'cut');break;case'copy':copyNode(id,'copy');break;case'paste':paste(parentId,'files');break;case'rename':beginRename(id,'files');break;case'delete':removeNode(id);break;}});
     $('.explorer-search input',win.content).oninput=event=>{const term=event.target.value.toLocaleLowerCase();let count=0;$$('tr[data-node-id]',win.content).forEach(row=>{row.hidden=!fs.get(row.dataset.nodeId).name.toLocaleLowerCase().includes(term);if(!row.hidden)count++;});const empty=$('.file-no-results',win.content);if(empty)empty.hidden=count!==0;$('.explorer-status span',win.content).textContent=count+' 个项目';};
@@ -155,7 +234,7 @@ global.initWorkspaceUI=function(runtime){
     status.textContent='已保存在当前浏览器 · '+editor.value.length+' 字 · UTF-8';
   }
   function renderRecycle(win){
-    const items=fs.trash();win.content.innerHTML=`<div class="app-page"><h1>回收站</h1><p>${items.length?'可还原已删除的项目。':'回收站是空的。'}</p><div class="recycle-list">${items.map(node=>`<div class="recycle-entry">${nodeArt(node)}<div><strong>${escape(node.name)}</strong><small>原位置：${escape(fs.path(node.originalParentId))}</small></div><button data-restore-node="${node.id}">还原</button></div>`).join('')}</div></div>`;
+    const items=fs.trash();win.content.innerHTML=`<div class="app-page"><h1>回收站</h1><p class="recycle-drop-hint">可将文件拖到此窗口或桌面回收站图标。</p><p>${items.length?'可还原已删除的项目。':'回收站是空的。'}</p><div class="recycle-list">${items.map(node=>`<div class="recycle-entry">${nodeArt(node)}<div><strong>${escape(node.name)}</strong><small>原位置：${escape(fs.path(node.originalParentId))}</small></div><button data-restore-node="${node.id}">还原</button></div>`).join('')}</div></div>`;
     $$('[data-restore-node]',win.content).forEach(button=>button.onclick=()=>{const node=safely(()=>fs.restore(button.dataset.restoreNode));if(node)toast('已还原“'+node.name+'”');});
   }
   $('#desktop').addEventListener('contextmenu',event=>{if(event.target.closest('.window,.desktop-item,input,textarea'))return;showContext(event,{parentId:'desktop',scope:'desktop'});});
@@ -188,7 +267,9 @@ global.initWorkspaceUI=function(runtime){
       event.preventDefault();event.clipboardData?.setData('text/plain',fs.get(id)?.name||'');copyNode(id,action==='cut'?'cut':'copy');
     }
   });
-  fs.subscribe(()=>{if(clipboard&&fs.isTrashed(clipboard.id))clipboard=null;if(selectedDesktop&&fs.isTrashed(selectedDesktop))selectedDesktop=null;refreshViews();});
+  const dragStatus=document.createElement('div');dragStatus.id='file-drag-status';dragStatus.className='visually-hidden';dragStatus.setAttribute('role','status');dragStatus.setAttribute('aria-live','polite');document.body.append(dragStatus);
+  $('#desktop-icons>.desktop-icon[data-app="recycle"]').title='回收站 · 可拖入文件、文件夹和快捷方式';
+  fs.subscribe(()=>{cancelFileDrag?.();if(clipboard&&fs.isTrashed(clipboard.id))clipboard=null;if(selectedDesktop&&fs.isTrashed(selectedDesktop))selectedDesktop=null;refreshViews();});
   window.addEventListener('resize',updateDesktopRows);
   renderDesktop();
   return {renderFiles,renderTextFile,renderRecycle,refresh:refreshViews};
