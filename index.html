@@ -6,8 +6,10 @@
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Windows 12 · 原生 HTML、CSS 与 JavaScript 构建的 Fluent Glass 仿真桌面">
   <title>Windows 12 — 自在，由你</title>
-  <link rel="stylesheet" href="styles.css?v=1.1">
-  <script defer src="app.js?v=1.1"></script>
+  <link rel="stylesheet" href="styles.css?v=1.2">
+  <script defer src="filesystem.js?v=1.2"></script>
+  <script defer src="workspace-ui.js?v=1.2"></script>
+  <script defer src="app.js?v=1.2"></script>
 </head>
 <body class="is-locked">
   <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -17,6 +19,7 @@
     <linearGradient id="aqua" x2="1" y2="1"><stop stop-color="var(--icon-green-light)"/><stop offset="1" stop-color="var(--icon-green)"/></linearGradient>
     <symbol id="i-start" viewBox="0 0 48 48"><path fill="url(#blue)" d="M6 7h16v16H6zm20 0h16v16H26zM6 27h16v16H6zm20 0h16v16H26z"/></symbol>
     <symbol id="i-files" viewBox="0 0 48 48"><path fill="var(--icon-yellow)" d="M4 12a4 4 0 014-4h12l5 5h15a4 4 0 014 4v21a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path fill="var(--icon-paper)" d="M8 17h32v8H8z"/><path fill="url(#folder)" d="M4 22h40v16a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path stroke="var(--icon-yellow-light)" stroke-width="2" d="M8 24h32"/></symbol>
+    <symbol id="i-text" viewBox="0 0 48 48"><path d="M10 4h19l9 9v30H10z" fill="var(--icon-paper)" stroke="var(--icon-silver)" stroke-width="1.2"/><path d="M29 4v10h9" fill="var(--icon-silver)" fill-opacity=".4"/><path d="M16 21h16m-16 6h16m-16 6h16m-16 6h10" stroke="var(--icon-blue)" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-pc" viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="28" rx="4" fill="var(--icon-slate)"/><rect x="7" y="10" width="34" height="21" rx="2" fill="url(#blue)"/><path fill="var(--icon-silver)" d="M20 35h8l2 6h6v3H12v-3h6z"/><path fill="var(--icon-paper)" opacity=".3" d="M7 10h34L7 31z"/></symbol>
     <symbol id="i-edge" viewBox="0 0 48 48"><path fill="url(#aqua)" d="M43 29c-1 10-11 16-20 15C9 43 3 34 5 23 7 10 18 3 30 6c9 2 15 10 14 18-4-8-15-9-20-5-3 3-1 8 4 10 5 2 10 1 15 0z"/><path fill="url(#blue)" d="M43 29c-6 6-21 6-25-1-4-7 2-17 13-17-10-6-22 0-25 12-3 13 6 21 18 21 8 0 16-4 19-15z"/><path fill="var(--icon-green-light)" d="M5 25C5 12 18 2 31 7c7 3 11 8 13 16-5-9-19-11-28-4-5 3-8 9-8 14z"/></symbol>
     <symbol id="i-settings" viewBox="0 0 48 48"><path fill="var(--icon-silver)" d="m20 3 8 0 2 6 5 3 6-1 4 7-4 5v5l4 5-4 7-6-1-5 3-2 5h-8l-2-5-5-3-6 1-4-7 4-5v-5l-4-5 4-7 6 1 5-3z" transform="translate(0 -1) scale(1 .96)"/><circle cx="24" cy="24" r="12" fill="var(--icon-slate)"/><circle cx="24" cy="24" r="8" fill="url(#blue)"/></symbol>

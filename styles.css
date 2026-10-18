@@ -223,3 +223,61 @@ body.window-resizing,body.window-resizing * {cursor:var(--resize-cursor)!importa
   .window.maximized {left:12px!important;top:12px!important;width:calc(100vw - 24px)!important}
 }
 @media(pointer:coarse) {:root {--resize-edge:8px;--resize-corner:20px}}
+/* v1.2: desktop files, Win11-style New submenu and local file tools. */
+.desktop-icons {grid-template-columns:none;grid-template-rows:repeat(var(--desktop-rows,5),98px);grid-auto-columns:86px;grid-auto-flow:column;max-width:calc(100vw - 40px);max-height:calc(100dvh - var(--task-height) - 60px);overflow-x:auto;overflow-y:hidden;padding-bottom:7px;scrollbar-width:thin}
+.desktop-item {display:flex;align-items:center;justify-content:flex-start;background:var(--transparent);color:var(--text);cursor:default;transition:transform var(--duration-fast) var(--ease-fluent),background var(--duration-fast) var(--ease-fluent),box-shadow var(--duration-fast) var(--ease-fluent)}
+.desktop-item[aria-pressed=true] {background:var(--surface-soft);border-color:var(--glass-border)}
+.desktop-item[aria-pressed=true] .app-label {color:var(--text);text-shadow:none}
+.node-art {position:relative;display:inline-flex;width:48px;height:48px;align-items:center;justify-content:center;flex-shrink:0}
+.node-art>svg {width:100%;height:100%}
+.shortcut-badge {position:absolute;bottom:1px;left:1px;width:14px;height:14px;border-radius:var(--radius-control);background:var(--icon-paper);color:var(--icon-blue);font-size:13px;font-weight:600;line-height:13px;display:grid;place-items:center;border:1px solid var(--icon-silver);text-shadow:none}
+.rename-input {background:var(--bg-base);color:var(--text);border:1px solid var(--accent);border-radius:var(--radius-control);padding:2px 4px;font-size:12px;user-select:text;min-width:0}
+.desktop-item .rename-input {width:82px;text-align:center}
+.file-name .rename-input {width:min(210px,100%)}
+.is-cut {opacity:.5}
+.context-menu {width:222px}
+.context-menu button:nth-child(2) {border-bottom:0;margin-bottom:0}
+.context-menu button {font-size:13px;gap:11px;padding:8px 10px}
+.context-menu button>span:nth-child(2) {flex:1}
+.context-menu button>.menu-key {font-size:10px;color:var(--muted);margin-left:auto;flex:0 0 auto}
+.context-menu button .node-art {width:17px;height:17px}
+.context-menu button .node-art svg {width:17px;height:17px}
+.menu-separator {height:1px;background:var(--line);margin:5px 7px}
+.context-submenu {position:absolute;width:216px;padding:7px;border-radius:var(--radius-overlay);z-index:2}
+.context-submenu button {display:flex;width:100%;text-align:left;align-items:center}
+.context-new[aria-expanded=true] {background:var(--surface-hover)}
+.file-dialog {width:440px;max-width:calc(100vw - 32px);padding:26px;border-radius:var(--radius-overlay);color:var(--text)}
+.file-dialog::backdrop {background:var(--scrim);backdrop-filter:blur(4px)}
+.file-dialog h2 {font-size:20px;margin-bottom:8px}
+.file-dialog form>p {font-size:12px;color:var(--muted);margin-bottom:18px}
+.file-dialog label {display:flex;flex-direction:column;gap:7px;font-size:12px;margin:15px 0}
+.file-dialog input,.file-dialog select {width:100%;min-width:0;padding:9px 10px;border:1px solid var(--line);border-bottom-color:var(--accent);border-radius:var(--radius-control);background:var(--bg-base);color:var(--text);user-select:text;font:inherit}
+.file-dialog .dialog-error {min-height:18px;font-size:12px;color:var(--close-text);margin:10px 0}
+.file-dialog footer {display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--line);padding-top:18px}
+.file-dialog footer>button {padding:8px 18px}
+.file-dialog footer>button:not(.primary-button) {background:var(--surface-soft);border:1px solid var(--line)}
+.files-commands {display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--line);padding:7px 16px;min-height:42px;overflow-x:auto;flex-shrink:0;scrollbar-width:thin}
+.files-commands button {display:flex;align-items:center;gap:7px;padding:5px 8px;font-size:11px;white-space:nowrap;flex-shrink:0}
+.files-commands button>svg {width:16px;height:16px;color:var(--muted)}
+.command-divider {width:1px;height:18px;background:var(--line);margin:0 5px;flex-shrink:0}
+.breadcrumb-path {min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-name .node-art {width:25px;height:25px}
+.file-name .shortcut-badge {width:9px;height:9px;font-size:9px;line-height:9px;bottom:0;left:0}
+.file-name-text {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;min-width:0}
+.file-table td:nth-child(2) {font-size:11px}
+.file-table td:nth-child(3) {font-size:11px;white-space:nowrap}
+.file-no-results {padding:30px 0;text-align:center;color:var(--muted);font-size:12px}
+.text-file-toolbar {display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line);padding:7px 12px;flex-shrink:0}
+.text-file-toolbar button {display:flex;align-items:center;gap:7px;padding:5px 9px;font-size:12px}
+.text-file-toolbar svg {width:16px;height:16px;color:var(--muted)}
+.text-file-toolbar kbd {font:10px 'Segoe UI',sans-serif;color:var(--muted);margin-left:5px}
+.text-file-toolbar>span {margin-left:auto;color:var(--muted);font-size:11px}
+.text-file-editor {display:block;flex:1;min-height:0;width:100%;resize:none;padding:20px 24px;font:14px/1.8 Consolas,'Microsoft YaHei',monospace;user-select:text;background:var(--surface-soft);tab-size:4}
+.text-file-status {padding:6px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);flex-shrink:0;min-height:29px}
+.recycle-entry {display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:14px 0}
+.recycle-entry>.node-art {width:36px;height:36px}
+.recycle-entry>div {flex:1;min-width:0}
+.recycle-entry strong {display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.recycle-entry small {display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.recycle-entry button {padding:6px 14px;background:var(--accent-soft);color:var(--accent);font-size:12px}
+@media(max-width:767px) {.desktop-icons {max-width:calc(100vw - 24px)}.files-commands {padding:6px 9px;gap:2px}.files-commands button {gap:4px;padding:5px 6px}.files-commands [data-file-command]>span {display:none}.text-file-toolbar kbd,.text-file-toolbar>span {display:none}.text-file-toolbar {gap:2px;padding-inline:8px}.text-file-editor {padding:16px}.file-name-text {max-width:150px}.file-table td:nth-child(3) {font-size:10px}.file-table th,.file-table td {padding-inline:4px}.file-dialog {padding:22px}}
