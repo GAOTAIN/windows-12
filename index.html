@@ -6,11 +6,12 @@
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Windows 12 · 原生 HTML、CSS 与 JavaScript 构建的 Fluent Glass 仿真桌面">
   <title>Windows 12 — 自在，由你</title>
-  <link rel="stylesheet" href="styles.css?v=1.4">
-  <script defer src="filesystem.js?v=1.4"></script>
-  <script defer src="workspace-ui.js?v=1.4"></script>
-  <script defer src="browser.js?v=1.4"></script>
-  <script defer src="app.js?v=1.4"></script>
+  <link rel="stylesheet" href="styles.css?v=1.5">
+  <script defer src="filesystem.js?v=1.5"></script>
+  <script defer src="workspace-ui.js?v=1.5"></script>
+  <script defer src="browser.js?v=1.5"></script>
+  <script defer src="account.js?v=1.5"></script>
+  <script defer src="app.js?v=1.5"></script>
 </head>
 <body class="is-locked">
   <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -90,13 +91,13 @@
         <label class="password-label" for="login-password">密码</label>
         <div class="glass password-field">
           <span data-symbol="lock" aria-hidden="true"></span>
-          <input id="login-password" name="demo-password" type="password" placeholder="密码" autocomplete="off" spellcheck="false" required aria-describedby="login-hint login-error">
+          <input id="login-password" name="password" type="password" placeholder="密码" autocomplete="off" spellcheck="false" required aria-describedby="login-hint login-error">
           <button id="password-visibility" class="icon-button" type="button" aria-label="显示密码" aria-pressed="false" data-symbol="eye"></button>
           <button id="unlock-button" class="icon-button login-submit" type="submit" aria-label="登录" title="登录"><span aria-hidden="true">→</span></button>
         </div>
         <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
         <button id="login-options" class="login-options" type="button" aria-expanded="false" aria-controls="login-hint">登录选项</button>
-        <small id="login-hint" class="welcome-hint">演示密码：<span>123456</span></small>
+        <small id="login-hint" class="welcome-hint">初始密码：<span>123456</span></small>
       </form>
     </div>
     <p class="lock-prompt">按任意键或点击屏幕登录</p>

@@ -355,3 +355,40 @@ body.file-dragging,body.file-dragging * {cursor:grabbing!important;user-select:n
 .browser-loading .browser-status {border-top-color:var(--accent)}
 .window.dragging .browser-frame,.window.resizing .browser-frame {pointer-events:none}
 @media(max-width:767px) {.browser-tab-strip {padding-inline:6px}.browser-tab {max-width:155px}.browser-tab-select {max-width:120px}.edge-address {gap:3px;padding:7px 6px}.browser-navigation {gap:0}.edge-address button,.browser-external {width:26px;height:28px;padding:4px}.edge-address-field {padding:6px 8px;gap:4px}.edge-address-field>svg {display:none}.edge-home {padding:23px 16px}.edge-home h1 {font-size:23px}.edge-quick-links {gap:14px}.browser-frame-hint {align-items:flex-start;flex-direction:column;gap:2px;padding:6px 10px}.browser-status-tag {display:none}}
+
+/* v1.5: Accounts / Sign-in options / Change password. */
+.settings-account-entry>div {flex:1}
+.settings-signin {display:flex;align-items:center;gap:18px;padding:8px 13px;background:var(--surface-soft);border:1px solid var(--line);white-space:nowrap;font-size:12px}
+.settings-breadcrumb {display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px;margin-bottom:20px}
+.settings-breadcrumb button {padding:3px 0;color:var(--accent)}
+.settings-breadcrumb strong {color:var(--text);font-weight:500}
+.settings-account-banner {display:flex;align-items:center;gap:12px;padding:16px 0 24px}
+.settings-account-banner .avatar {width:48px;height:48px;font-size:20px}
+.settings-account-banner strong,.settings-account-banner small {display:block}
+.settings-account-banner small {color:var(--muted);margin-top:4px}
+.signin-settings>h2 {font-size:13px;margin:0 0 10px}
+.signin-password-card {border:1px solid var(--line);background:var(--surface-soft);border-radius:var(--radius-control);overflow:hidden}
+.signin-password-toggle {display:flex;align-items:center;gap:14px;width:100%;padding:18px;text-align:left}
+.signin-password-toggle>svg {width:23px;height:23px;color:var(--accent)}
+.signin-password-toggle>span:nth-child(2) {flex:1}
+.signin-password-toggle strong {display:block;font-size:13px;font-weight:500}
+.signin-password-toggle small {display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.password-chevron {font-size:18px;transition:transform var(--duration-fast) var(--ease-fluent)}
+.signin-password-toggle[aria-expanded=false] .password-chevron {transform:rotate(-90deg)}
+.signin-password-options {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px 17px 55px;border-top:1px solid var(--line)}
+.signin-password-options p {font-size:12px}
+.signin-password-options small {display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.change-password-button {padding:7px 24px;background:var(--bg-base);border:1px solid var(--line);font-size:12px;flex-shrink:0}
+.signin-settings>.password-settings-result {font-size:12px;color:var(--accent);margin:15px 0 0;min-height:18px}
+.signin-settings>.account-local-note {font-size:11px;line-height:1.7;margin-top:16px;color:var(--muted)}
+.password-dialog {width:450px;max-height:calc(100dvh - 32px);overflow:auto;padding:24px}
+.password-dialog form>p {margin-bottom:14px}
+.password-dialog label {margin:12px 0;gap:6px}
+.password-dialog #new-password-help {display:block;color:var(--muted);font-size:10px;margin-top:-7px}
+.password-dialog label.show-passwords {flex-direction:row;align-items:center;gap:8px;margin:14px 0 8px}
+.password-dialog .show-passwords input {width:14px;height:14px;accent-color:var(--accent)}
+.password-dialog .dialog-error {min-height:18px;margin:8px 0;color:var(--close-text)}
+.password-dialog input[aria-invalid=true] {border-color:var(--close-text)}
+.password-dialog input:disabled {opacity:.65}
+.password-dialog footer {padding-top:14px}
+@media(max-width:480px) {.settings-signin {padding:7px 9px;gap:8px}.signin-password-options {padding:14px;align-items:flex-start}.signin-password-toggle {padding:15px}.password-dialog {padding:20px}.settings-breadcrumb {margin-bottom:16px}}

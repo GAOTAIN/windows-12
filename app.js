@@ -9,6 +9,8 @@ const apps=[['files','文件资源管理器'],['edge','Microsoft Edge'],['photos
 let workspaceUI;
 const appById=id=>id.startsWith('text:')?{id,name:window.DesktopFS.get(id.slice(5))?.name||'文本文档'}:apps.find(a=>a.id===id)||apps[0],windows=new Map();let z=10,activeId=null,cascade=0,toastTimer,pressTimer;const memory={};
 const store={get(k,f=''){try{return localStorage.getItem(`w12-${k}`)??f;}catch{return memory[k]??f;}},set(k,v){memory[k]=v;try{localStorage.setItem(`w12-${k}`,v);}catch{}}};
+let credentialStorage;try{credentialStorage=window.localStorage;}catch{credentialStorage=null;}
+const account=window.Windows12Account.createPasswordStore(credentialStorage,window.crypto);
 const duration=n=>parseFloat(getComputedStyle(root).getPropertyValue(`--duration-${n}`))||0;
 function toast(m){clearTimeout(toastTimer);$('#toast').textContent=m;$('#toast').classList.add('visible');toastTimer=setTimeout(()=>$('#toast').classList.remove('visible'),2800);}
 let themeTimer; function setTheme(dark){clearTimeout(themeTimer);document.body.classList.add('theme-changing');root.classList.toggle('dark',dark);store.set('theme',dark?'dark':'light');themeTimer=setTimeout(()=>document.body.classList.remove('theme-changing'),duration('slow'));$('#theme-toggle').innerHTML=symbol(dark?'moon':'sun');$('#theme-toggle').setAttribute('aria-label',dark?'切换到浅色主题':'切换到深色主题');$$('[data-theme-choice]').forEach(b=>{b.classList.toggle('selected',(b.dataset.themeChoice==='dark')===dark);b.setAttribute('aria-pressed',String(b.classList.contains('selected')));});}
@@ -126,7 +128,7 @@ function installWindowResize(win) {
 }
 function openApp(id,options={}){closeOverlays();if(windows.has(id)){const existing=windows.get(id);if(existing.minimized)restore(id);else focusWindow(id);if(options.folder&&id==='files')renderFiles(existing,options.folder);if(options.url&&id==='edge')existing.navigateBrowser?.(options.url);return existing;}const app=appById(id),el=document.createElement('section');el.className='window appearing';el.dataset.app=id;el.setAttribute('role','dialog');el.setAttribute('aria-label',app.name);const sizes={edge:[1000,620],files:[900,574],settings:[660,540],notes:[510,440],calculator:[330,480],calendar:[430,520],clock:[480,380],terminal:[650,420],music:[440,480]},[w,h]=sizes[id]||[740,510],width=Math.min(w,innerWidth-36),height=Math.min(h,innerHeight-125),offset=(cascade++%5)*25;const left=Math.max(12,Math.min((innerWidth-width)/2+offset-32,innerWidth-width-24)),top=Math.max(12,Math.min((innerHeight-height-85)/2+offset,innerHeight-height-100));el.style.setProperty('--window-x',`${left}px`);el.style.setProperty('--window-y',`${top}px`);el.style.setProperty('--window-w',`${w}px`);el.style.setProperty('--window-h',`${h}px`);el.innerHTML=`<header class="titlebar"><div class="window-title">${art(id)}<span>${app.name}</span></div><div class="window-controls"><button data-control="minimize" aria-label="最小化">${symbol('minus')}</button><button data-control="maximize" aria-label="最大化">${symbol('maximize')}</button><button data-control="close" class="close-window" aria-label="关闭">${symbol('close')}</button></div></header><div class="window-content"></div>`;$('#windows').append(el);const win={id,el,content:$('.window-content',el),minimized:false,maximized:false};windows.set(id,win);el.addEventListener('pointerdown',()=>focusWindow(id));$('[data-control=minimize]',el).onclick=()=>minimize(id);$('[data-control=maximize]',el).onclick=()=>maximize(id);$('[data-control=close]',el).onclick=()=>closeWindow(id);const title=$('.titlebar',el);title.addEventListener('dblclick',e=>{if(!e.target.closest('button'))maximize(id);});title.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button')||win.maximized)return;const rect=el.getBoundingClientRect(),dx=e.clientX-rect.left,dy=e.clientY-rect.top;title.setPointerCapture(e.pointerId);el.classList.add('dragging');const move=event=>{const area=desktopBounds();el.style.setProperty('--window-x',`${clamp(event.clientX-dx,area.left,area.right-rect.width)}px`);el.style.setProperty('--window-y',`${clamp(event.clientY-dy,area.top,area.bottom-rect.height)}px`);};const end=()=>{el.classList.remove('dragging');title.removeEventListener('pointermove',move);title.removeEventListener('pointerup',end);title.removeEventListener('pointercancel',end);};title.addEventListener('pointermove',move);title.addEventListener('pointerup',end);title.addEventListener('pointercancel',end);});renderApp(win,options);installWindowResize(win);focusWindow(id);el.tabIndex=-1;el.focus({preventScroll:true});requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('appearing')));return win;}
 function renderFiles(win,folder='主页',recordHistory=true){return workspaceUI.renderFiles(win,folder,recordHistory);}
-function renderSettings(win){win.content.innerHTML=`<div class="app-page"><span class="eyebrow">MAKE IT YOURS</span><h1>设置</h1><p>个性化、账户和系统设置。</p><div class="settings-profile"><span class="avatar">L</span><div><strong>本地用户</strong><small>Windows 12 · 浏览器仿真桌面</small></div></div><div class="settings-row">${symbol('sun')}<div><strong>外观</strong><small>为此刻的你，选择适合的明暗。</small><div class="theme-options"><button class="theme-option" data-theme-choice="light"><span class="theme-preview"></span>浅色</button><button class="theme-option" data-theme-choice="dark"><span class="theme-preview night"></span>深色</button></div></div></div><div class="settings-row">${symbol('moon')}<div><strong>专注模式</strong><small>暂时收起通知，专注于当下。</small></div><button class="switch settings-focus" role="switch" aria-label="专注模式" aria-checked="${$('#focus-toggle').getAttribute('aria-checked')}"></button></div><div class="settings-row">${symbol('monitor')}<div><strong>关于这台设备</strong><small>原生 HTML / CSS / JavaScript · 无外部资源</small></div></div></div>`;$$('[data-theme-choice]',win.content).forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice==='dark'));setTheme(root.classList.contains('dark'));$('.settings-focus',win.content).onclick=toggleFocus;}
+function renderSettings(win){win.cleanup?.();delete win.cleanup;win.content.innerHTML=`<div class="app-page"><span class="eyebrow">MAKE IT YOURS</span><h1>设置</h1><p>个性化、账户和系统设置。</p><div class="settings-profile"><span class="avatar">L</span><div><strong>本地用户</strong><small>Windows 12 · 浏览器仿真桌面</small></div></div><div class="settings-row settings-account-entry">${symbol('person')}<div><strong>账户</strong><small>密码和登录选项</small></div><button class="settings-signin">登录选项 <span aria-hidden="true">›</span></button></div><div class="settings-row">${symbol('sun')}<div><strong>外观</strong><small>为此刻的你，选择适合的明暗。</small><div class="theme-options"><button class="theme-option" data-theme-choice="light"><span class="theme-preview"></span>浅色</button><button class="theme-option" data-theme-choice="dark"><span class="theme-preview night"></span>深色</button></div></div></div><div class="settings-row">${symbol('moon')}<div><strong>专注模式</strong><small>暂时收起通知，专注于当下。</small></div><button class="switch settings-focus" role="switch" aria-label="专注模式" aria-checked="${$('#focus-toggle').getAttribute('aria-checked')}"></button></div><div class="settings-row">${symbol('monitor')}<div><strong>关于这台设备</strong><small>原生 HTML / CSS / JavaScript · 无外部资源</small></div></div></div>`;$$('[data-theme-choice]',win.content).forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice==='dark'));setTheme(root.classList.contains('dark'));$('.settings-focus',win.content).onclick=toggleFocus;$('.settings-signin',win.content).onclick=()=>window.Windows12Account.mountSignIn(win,{$,$$,symbol,account,onBack:()=>renderSettings(win),onChanged:()=>refreshLoginHint()});}
 function renderCalendar(win){let view=new Date(),chosen=new Date();const now=new Date();const draw=()=>{const year=view.getFullYear(),month=view.getMonth(),start=(new Date(year,month,1).getDay()+6)%7,days=new Date(year,month+1,0).getDate();win.content.innerHTML=`<div class="app-page"><span class="eyebrow">A LITTLE TIME FOR YOU</span><h1>把日子，过成喜欢的样子。</h1><div class="calendar-nav"><strong>${year} 年 ${month+1} 月</strong><div><button data-month="-1" aria-label="上个月">‹</button><button data-month="1" aria-label="下个月">›</button></div></div><div class="calendar-grid">${['一','二','三','四','五','六','日'].map(d=>`<span>${d}</span>`).join('')}${'<span></span>'.repeat(start)}${Array.from({length:days},(_,i)=>`<button data-day="${i+1}" class="${now.getFullYear()===year&&now.getMonth()===month&&now.getDate()===i+1?'today':''} ${chosen.getFullYear()===year&&chosen.getMonth()===month&&chosen.getDate()===i+1?'chosen':''}">${i+1}</button>`).join('')}</div><p class="calendar-detail">${chosen.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'})} · 暂无日程，留一点时间给自己。</p></div>`;$$('[data-month]',win.content).forEach(b=>b.onclick=()=>{view=new Date(year,month+Number(b.dataset.month),1);draw();});$$('[data-day]',win.content).forEach(b=>b.onclick=()=>{chosen=new Date(year,month,Number(b.dataset.day));draw();});};draw();}
 function renderCalculator(win){let value='0',a=null,op=null,replace=true;const keys=['C','±','%','÷','7','8','9','×','4','5','6','−','1','2','3','+','⌫','0','.','='];win.content.innerHTML=`<output class="calc-display" aria-live="polite">0</output><div class="calculator">${keys.map(k=>`<button data-key="${k}" class="${k==='='?'calc-equals':''}">${k}</button>`).join('')}</div>`;const compute=()=>{const b=Number(value),n=op==='+'?a+b:op==='−'?a-b:op==='×'?a*b:b===0?NaN:a/b;value=Number.isFinite(n)?String(Number(n.toPrecision(12))):'无法除以零';a=null;op=null;replace=true;};const press=key=>{if(/^\d$/.test(key)){if(replace||value==='0'){value=key;replace=false;}else if(value.length<14)value+=key;}else if(key==='.'){if(replace){value='0.';replace=false;}else if(!value.includes('.'))value+='.';}else if(key==='C'){value='0';a=null;op=null;replace=true;}else if(key==='⌫'){value=replace?'0':value.slice(0,-1)||'0';}else if(key==='±'){if(Number.isFinite(Number(value)))value=String(-Number(value));}else if(key==='%'){value=String(Number(value)/100);}else if(key==='='){if(op!==null)compute();}else{if(op&&!replace)compute();a=Number(value);op=key;replace=true;}$('.calc-display',win.content).textContent=value;};$$('[data-key]',win.content).forEach(b=>b.onclick=()=>press(b.dataset.key));win.el.addEventListener('keydown',e=>{const mapped={'Enter':'=','Escape':'C','Backspace':'⌫','*':'×','/':'÷','-':'−'}[e.key]||e.key;if(keys.includes(mapped)){e.preventDefault();press(mapped);}});}
 function renderApp(win,options={}){if(win.id.startsWith('text:')){workspaceUI.renderTextFile(win);return;}switch(win.id){
@@ -155,9 +157,9 @@ $('#task-apps').onclick=e=>{const b=e.target.closest('.task-app');if(!b)return;c
 $('#start-button').onclick=()=>toggleOverlay('start-menu');$('#clock-button').onclick=()=>toggleOverlay('notification-center');$('#quick-settings').onclick=()=>toggleOverlay('quick-panel');$('#theme-toggle').onclick=()=>setTheme(!root.classList.contains('dark'));
 $('#task-search').onclick=()=>{clearTimeout(pressTimer);$('#taskbar').classList.add('pressed');pressTimer=setTimeout(()=>$('#taskbar').classList.remove('pressed'),duration('fast'));};
 $('#start-search').oninput=e=>{const searching=!!e.target.value.trim();$('#start-menu').classList.toggle('searching',searching);$('#start-apps').inert=searching;};$('#all-apps').onclick=()=>{const input=$('#start-search');input.value='';input.dispatchEvent(new Event('input'));toast('已显示全部 12 个内置应用');};$('#profile-button').onclick=()=>openApp('settings');$('#power-button').onclick=()=>toggleOverlay('power-menu');
-const DEMO_PASSWORD = '123456';
-let welcomeTimer, signinFocusTimer;
+let welcomeTimer, signinFocusTimer, loginAttempt=0, loginBusy=false;
 function showWelcome() {
+  $$('dialog[data-password-dialog]').forEach(dialog=>dialog.close());
   clearTimeout(welcomeTimer);
   clearTimeout(signinFocusTimer);
   dismissKey = null;
@@ -189,12 +191,17 @@ function showSignIn() {
     if (screen.dataset.phase === 'signin' && !screen.hidden) $('#login-password').focus({preventScroll:true});
   }, duration('normal'));
 }
-function enterDesktop() {
+async function enterDesktop() {
   const screen = $('#lock-screen');
-  if (screen.hidden || screen.dataset.phase !== 'signin' || screen.classList.contains('leaving')) return;
-  const password = $('#login-password');
-  if (password.value !== DEMO_PASSWORD) {
-    $('#login-error').textContent = password.value ? '密码不正确，请重试。' : '请输入密码。';
+  if (loginBusy || screen.hidden || screen.dataset.phase !== 'signin' || screen.classList.contains('leaving')) return;
+  const password = $('#login-password'), attempt=++loginAttempt;
+  loginBusy=true;$('#unlock-button').disabled=true;password.readOnly=true;
+  let valid=false,message='';
+  try{valid=password.value?await account.verify(password.value):false;}catch(error){message=error.message;}
+  if(attempt!==loginAttempt||screen.hidden||screen.dataset.phase!=='signin')return;
+  loginBusy=false;$('#unlock-button').disabled=false;password.readOnly=false;
+  if (!valid) {
+    $('#login-error').textContent = message || (password.value ? '密码不正确，请重试。' : '请输入密码。');
     password.setAttribute('aria-invalid', 'true');
     $('.password-field').classList.add('invalid');
     password.focus({preventScroll:true});
@@ -213,9 +220,16 @@ function enterDesktop() {
     screen.classList.remove('leaving');
   }, duration('normal'));
 }
+function refreshLoginHint(){
+  const expanded=$('#login-options').getAttribute('aria-expanded')==='true';
+  try{const info=account.info();$('#login-hint').textContent=info.custom?(expanded&&info.hint?'密码提示：'+info.hint:'使用你在设置中保存的密码。'):(expanded?'密码登录 · 初始密码：123456':'初始密码：123456');}
+  catch(error){$('#login-hint').textContent=error.message;}
+}
 function resetLogin() {
+  loginAttempt++;loginBusy=false;$('#unlock-button').disabled=false;
   const password = $('#login-password');
   password.value = '';
+  password.readOnly = false;
   password.type = 'password';
   password.removeAttribute('aria-invalid');
   $('.password-field').classList.remove('invalid');
@@ -223,6 +237,7 @@ function resetLogin() {
   $('#password-visibility').setAttribute('aria-label', '显示密码');
   $('#password-visibility').setAttribute('aria-pressed', 'false');
   $('#password-visibility').innerHTML = symbol('eye');
+  refreshLoginHint();
 }
 // The key that dismisses the clock cover is consumed, including its repeats.
 let dismissKey = null;
@@ -253,13 +268,14 @@ $('#lock-screen').addEventListener('pointerdown', e => {
   e.stopPropagation();
   showSignIn();
 });
+window.addEventListener('storage',event=>{if(event.key===account.key||event.key===null)resetLogin();});
 $('#lock-desktop').onclick=showWelcome;
 $('#login-form').onsubmit=e=>{e.preventDefault();enterDesktop();};
 $('#login-password').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();enterDesktop();}};
 $('#login-options').onclick=()=>{
   const button=$('#login-options'), expanded=button.getAttribute('aria-expanded')!=='true';
   button.setAttribute('aria-expanded',String(expanded));
-  $('#login-hint').innerHTML=expanded?'密码登录 · 演示密码：<span>123456</span>':'演示密码：<span>123456</span>';
+  refreshLoginHint();
 };
 $('#login-power').onclick=()=>toggleOverlay('power-menu');
 $('#login-accessibility').onclick=()=>{
