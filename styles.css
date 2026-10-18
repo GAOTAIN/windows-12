@@ -299,3 +299,59 @@ body.file-dragging,body.file-dragging * {cursor:grabbing!important;user-select:n
 .window[data-app="recycle"] .window-content.recycle-drop-target {background:var(--accent-soft);outline:2px solid var(--accent);outline-offset:-4px}
 .recycle-drop-hint {color:var(--muted);font-size:12px;margin-top:8px}
 .visually-hidden {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* v1.4: Edge-style tabs, real web navigation and external-open fallback. */
+.edge-content {min-height:0;background:var(--surface-soft)}
+.browser-tab-strip {display:flex;align-items:center;gap:4px;padding:5px 10px 0;min-height:38px;background:var(--mica-tint);flex-shrink:0}
+.browser-tabs {display:flex;align-items:center;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.browser-tab {display:flex;align-items:center;min-width:100px;max-width:200px;background:var(--surface-soft);border-radius:var(--radius-control) var(--radius-control) 0 0;border:1px solid var(--transparent);flex-shrink:0}
+.browser-tab.selected {background:var(--glass-bg);border-color:var(--glass-border)}
+.browser-tab-select {display:flex;align-items:center;gap:7px;font-size:11px;padding:7px 8px;min-width:0;max-width:162px;border-radius:var(--radius-control) 0 0 0}
+.browser-tab-select .app-art {width:17px;height:17px}
+.browser-tab-select>span {white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browser-close-tab {padding:5px;margin-right:3px;flex-shrink:0}
+.browser-close-tab svg {width:12px;height:12px}
+.browser-new-tab {padding:6px;flex-shrink:0}
+.browser-new-tab svg {width:17px;height:17px}
+.edge-address {display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);flex-shrink:0;min-width:0;background:var(--surface-soft)}
+.browser-navigation {display:flex;gap:2px;flex-shrink:0}
+.edge-address button,.browser-external {display:grid;place-items:center;width:29px;height:29px;padding:5px;flex-shrink:0}
+.edge-address button svg {width:17px;height:17px}
+.browser-forward svg {transform:rotate(180deg)}
+.edge-address-field {display:flex;align-items:center;gap:8px;min-width:0;flex:1;padding:6px 10px;background:var(--bg-base);border:1px solid var(--line);border-radius:var(--radius-pill)}
+.edge-address-field>svg {width:15px;height:15px;color:var(--muted)}
+.edge-address-field:focus-within {border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
+.edge-url {width:100%;min-width:0;font-size:12px;user-select:text}
+.edge-url:focus-visible {outline:none}
+.browser-external {color:var(--accent);font-size:19px;text-decoration:none;border-radius:var(--radius-control)}
+.browser-external:hover {background:var(--accent-soft)}
+.browser-error {padding:8px 14px;background:var(--close-bg);color:var(--close-text);font-size:12px;flex-shrink:0}
+.browser-pages {position:relative;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.browser-page {display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.edge-home {flex:1;min-height:0;overflow:auto;padding:30px 24px;text-align:center;background:var(--mica-tint)}
+.edge-home-brand {display:flex;align-items:center;justify-content:center;gap:9px;color:var(--muted);font-size:12px;margin-bottom:17px}
+.edge-home-brand .app-art {width:38px;height:38px}
+.edge-home h1 {font-size:27px;font-weight:500;letter-spacing:-.5px}
+.edge-home>p {font-size:12px;color:var(--muted);margin:10px 0 22px}
+.edge-home-search {display:flex;align-items:center;max-width:530px;margin:0 auto 24px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-pill);box-shadow:var(--glass-shadow);padding:7px 9px 7px 16px}
+.edge-home-search label {display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.edge-home-search svg {width:19px;height:19px;color:var(--muted)}
+.edge-home-search input {width:100%;min-width:0;user-select:text;font-size:12px}
+.edge-home-search button {width:32px;height:32px;font-size:18px;color:var(--accent)}
+.edge-quick-links {display:flex;justify-content:center;gap:25px;flex-wrap:wrap}
+.edge-quick-links button {display:flex;align-items:center;flex-direction:column;gap:8px;font-size:11px;padding:6px;min-width:65px}
+.site-letter {display:grid;place-items:center;width:42px;height:42px;background:var(--bg-base);border-radius:var(--radius-control);border:1px solid var(--line);color:var(--accent);font:600 24px 'Segoe UI',sans-serif;box-shadow:var(--icon-shadow)}
+.edge-local-links {display:flex;justify-content:center;gap:6px;margin-top:18px}
+.edge-local-links button {padding:5px 10px;font-size:11px;color:var(--muted)}
+.edge-home .edge-home-note {max-width:470px;margin:18px auto 0;font-size:11px;line-height:1.7}
+.browser-frame-hint {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;padding:8px 12px;background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:11px;line-height:1.6}
+.browser-frame-hint p {color:var(--muted)}
+.browser-frame-hint a {color:var(--accent);white-space:nowrap;font-weight:500}
+.browser-frame-holder {position:relative;display:flex;flex:1;min-height:0;background:var(--icon-paper)}
+.browser-frame {display:block;width:100%;height:100%;flex:1;border:0;background:var(--icon-paper);color-scheme:normal}
+.browser-status {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 12px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);min-height:25px;flex-shrink:0}
+.browser-status>[role=status] {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.browser-status-tag {flex-shrink:0}
+.browser-loading .browser-status {border-top-color:var(--accent)}
+.window.dragging .browser-frame,.window.resizing .browser-frame {pointer-events:none}
+@media(max-width:767px) {.browser-tab-strip {padding-inline:6px}.browser-tab {max-width:155px}.browser-tab-select {max-width:120px}.edge-address {gap:3px;padding:7px 6px}.browser-navigation {gap:0}.edge-address button,.browser-external {width:26px;height:28px;padding:4px}.edge-address-field {padding:6px 8px;gap:4px}.edge-address-field>svg {display:none}.edge-home {padding:23px 16px}.edge-home h1 {font-size:23px}.edge-quick-links {gap:14px}.browser-frame-hint {align-items:flex-start;flex-direction:column;gap:2px;padding:6px 10px}.browser-status-tag {display:none}}

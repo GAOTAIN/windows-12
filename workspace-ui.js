@@ -166,7 +166,7 @@ global.initWorkspaceUI=function(runtime){
     if(node.kind==='shortcut'){
       if(node.target?.type==='app'){openApp(node.target.value);return;}
       if(node.target?.type==='node'){openNode(node.target.value,visited);return;}
-      if(node.target?.type==='url'){try{const url=new URL(node.target.value);if(!['https:','http:'].includes(url.protocol))throw new Error();const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.click();}catch{toast('快捷方式的网址无效。');}return;}
+      if(node.target?.type==='url'){try{const url=new URL(node.target.value);if(!['https:','http:'].includes(url.protocol))throw new Error();openApp('edge',{url:url.href});}catch{toast('快捷方式的网址无效。');}return;}
       toast('快捷方式目标不可用。');
     }
   }
