@@ -198,3 +198,28 @@ body {font-family:'Segoe UI Variable','Segoe UI','Microsoft YaHei UI','Microsoft
 @media(max-height:500px) {.lock-screen .welcome-clock {top:12vh}.lock-screen .welcome-clock time {font-size:64px}.lock-screen .welcome-clock p {font-size:16px}.lock-prompt {bottom:22px}}
 
 .lock-screen[data-phase=cover] .welcome-footer {transform:none}
+
+/* v1.1: native-style edge and corner resizing. */
+:root {--resize-edge:6px;--resize-corner:14px;--resize-cursor:auto}
+.window {max-height:calc(100dvh - var(--task-height) - var(--gap-edge)*3)}
+.window.resizing {transition:none!important}
+.resize-handle,.resize-handle:hover,.resize-handle:active {position:absolute;z-index:4;display:block;background:var(--transparent);border:0;padding:0;box-shadow:none;transform:none;border-radius:var(--radius-none);touch-action:none;transition:none}
+.resize-handle[data-resize=n],.resize-handle[data-resize=s] {left:var(--resize-corner);right:var(--resize-corner);height:var(--resize-edge);cursor:ns-resize}
+.resize-handle[data-resize=n] {top:0}
+.resize-handle[data-resize=s] {bottom:0}
+.resize-handle[data-resize=e],.resize-handle[data-resize=w] {top:var(--resize-corner);bottom:var(--resize-corner);width:var(--resize-edge);cursor:ew-resize}
+.resize-handle[data-resize=e] {right:0}
+.resize-handle[data-resize=w] {left:0}
+.resize-handle[data-resize=ne],.resize-handle[data-resize=nw],.resize-handle[data-resize=se],.resize-handle[data-resize=sw] {width:var(--resize-corner);height:var(--resize-corner)}
+.resize-handle[data-resize=ne] {right:0;top:0;cursor:nesw-resize}
+.resize-handle[data-resize=nw] {left:0;top:0;cursor:nwse-resize}
+.resize-handle[data-resize=se] {right:0;bottom:0;cursor:nwse-resize}
+.resize-handle[data-resize=sw] {left:0;bottom:0;cursor:nesw-resize}
+.resize-handle:focus-visible {outline:2px solid var(--text);outline-offset:-3px;background:var(--accent-soft)}
+.window.maximized .resize-handle {display:none}
+body.window-resizing,body.window-resizing * {cursor:var(--resize-cursor)!important;user-select:none!important}
+@media(max-width:767px) {
+  .window:not(.maximized) {left:var(--window-x,12px)!important;top:var(--window-y,18px)!important;width:var(--window-w,calc(100vw - 24px))!important;height:var(--window-h,calc(100dvh - 100px));max-height:calc(100dvh - var(--task-height) - var(--gap-edge)*3)}
+  .window.maximized {left:12px!important;top:12px!important;width:calc(100vw - 24px)!important}
+}
+@media(pointer:coarse) {:root {--resize-edge:8px;--resize-corner:20px}}

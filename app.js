@@ -17,11 +17,113 @@ function toggleOverlay(id){const panel=$(`#${id}`),opening=!panel.classList.cont
 function updateTasks(){$$('.task-app').forEach(b=>{const w=windows.get(b.dataset.app);b.classList.toggle('running',!!w);b.classList.toggle('minimized',!!w?.minimized);b.classList.toggle('foreground',activeId===b.dataset.app&&!w?.minimized);b.setAttribute('aria-label',`${appById(b.dataset.app).name}${w?(w.minimized?'，已最小化':'，正在运行'):''}`);});}
 function focusWindow(id){const w=windows.get(id);if(!w||w.minimized)return;windows.forEach(x=>x.el.classList.remove('active'));w.el.classList.add('active');w.el.style.zIndex=++z;activeId=id;updateTasks();}
 function nextFocus(){const shown=[...windows.values()].filter(w=>!w.minimized).sort((a,b)=>Number(b.el.style.zIndex)-Number(a.el.style.zIndex));activeId=null;if(shown[0])focusWindow(shown[0].id);else updateTasks();}
-function minimize(id){const w=windows.get(id);if(!w||w.minimized)return;const task=$(`.task-app[data-app="${id}"]`)||$('#start-button'),t=task.getBoundingClientRect(),r=w.el.getBoundingClientRect();w.el.style.setProperty('--min-x',`${t.x+t.width/2-r.x-r.width/2}px`);w.el.style.setProperty('--min-y',`${t.y-r.y-r.height/2}px`);w.el.classList.add('minimizing');w.minimized=true;w.el.inert=true;w.el.setAttribute('aria-hidden','true');task.classList.add('pulse');w.timer=setTimeout(()=>{w.el.hidden=true;task.classList.remove('pulse');},duration('slow'));nextFocus();}
+function minimize(id){const w=windows.get(id);if(!w||w.minimized)return;w.endResize?.();const task=$(`.task-app[data-app="${id}"]`)||$('#start-button'),t=task.getBoundingClientRect(),r=w.el.getBoundingClientRect();w.el.style.setProperty('--min-x',`${t.x+t.width/2-r.x-r.width/2}px`);w.el.style.setProperty('--min-y',`${t.y-r.y-r.height/2}px`);w.el.classList.add('minimizing');w.minimized=true;w.el.inert=true;w.el.setAttribute('aria-hidden','true');task.classList.add('pulse');w.timer=setTimeout(()=>{w.el.hidden=true;task.classList.remove('pulse');},duration('slow'));nextFocus();}
 function restore(id){const w=windows.get(id);if(!w)return;clearTimeout(w.timer);w.el.hidden=false;w.el.inert=false;w.el.removeAttribute('aria-hidden');w.minimized=false;requestAnimationFrame(()=>{w.el.classList.remove('minimizing');focusWindow(id);});}
-function closeWindow(id){const w=windows.get(id);if(!w)return;clearTimeout(w.timer);w.cleanup?.();w.el.classList.add('closing');w.el.inert=true;windows.delete(id);setTimeout(()=>w.el.remove(),duration('normal'));nextFocus();}
-function maximize(id){const w=windows.get(id);if(!w)return;w.maximized=!w.maximized;w.el.classList.toggle('maximized',w.maximized);const b=$('[data-control=maximize]',w.el);b.innerHTML=symbol(w.maximized?'restore':'maximize');b.setAttribute('aria-label',w.maximized?'还原':'最大化');}
-function openApp(id,options={}){closeOverlays();if(windows.has(id)){const existing=windows.get(id);if(existing.minimized)restore(id);else focusWindow(id);if(options.folder&&id==='files')renderFiles(existing,options.folder);return existing;}const app=appById(id),el=document.createElement('section');el.className='window appearing';el.dataset.app=id;el.setAttribute('role','dialog');el.setAttribute('aria-label',app.name);const sizes={files:[900,574],settings:[660,540],notes:[510,440],calculator:[330,480],calendar:[430,520],clock:[480,380],terminal:[650,420],music:[440,480]},[w,h]=sizes[id]||[740,510],width=Math.min(w,innerWidth-36),height=Math.min(h,innerHeight-125),offset=(cascade++%5)*25;const left=Math.max(12,Math.min((innerWidth-width)/2+offset-32,innerWidth-width-24)),top=Math.max(12,Math.min((innerHeight-height-85)/2+offset,innerHeight-height-100));el.style.setProperty('--window-x',`${left}px`);el.style.setProperty('--window-y',`${top}px`);el.style.setProperty('--window-w',`${w}px`);el.style.setProperty('--window-h',`${h}px`);el.innerHTML=`<header class="titlebar"><div class="window-title">${art(id)}<span>${app.name}</span></div><div class="window-controls"><button data-control="minimize" aria-label="最小化">${symbol('minus')}</button><button data-control="maximize" aria-label="最大化">${symbol('maximize')}</button><button data-control="close" class="close-window" aria-label="关闭">${symbol('close')}</button></div></header><div class="window-content"></div>`;$('#windows').append(el);const win={id,el,content:$('.window-content',el),minimized:false,maximized:false};windows.set(id,win);el.addEventListener('pointerdown',()=>focusWindow(id));$('[data-control=minimize]',el).onclick=()=>minimize(id);$('[data-control=maximize]',el).onclick=()=>maximize(id);$('[data-control=close]',el).onclick=()=>closeWindow(id);const title=$('.titlebar',el);title.addEventListener('dblclick',e=>{if(!e.target.closest('button'))maximize(id);});title.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button')||win.maximized||innerWidth<768)return;const rect=el.getBoundingClientRect(),dx=e.clientX-rect.left,dy=e.clientY-rect.top;title.setPointerCapture(e.pointerId);el.classList.add('dragging');const move=event=>{el.style.setProperty('--window-x',`${Math.max(12,Math.min(innerWidth-rect.width-12,event.clientX-dx))}px`);el.style.setProperty('--window-y',`${Math.max(12,Math.min(innerHeight-125,event.clientY-dy))}px`);};const end=()=>{el.classList.remove('dragging');title.removeEventListener('pointermove',move);title.removeEventListener('pointerup',end);title.removeEventListener('pointercancel',end);};title.addEventListener('pointermove',move);title.addEventListener('pointerup',end);title.addEventListener('pointercancel',end);});renderApp(win,options);focusWindow(id);el.tabIndex=-1;el.focus({preventScroll:true});requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('appearing')));return win;}
+function closeWindow(id){const w=windows.get(id);if(!w)return;w.endResize?.();clearTimeout(w.timer);w.cleanup?.();w.el.classList.add('closing');w.el.inert=true;windows.delete(id);setTimeout(()=>w.el.remove(),duration('normal'));nextFocus();}
+function maximize(id){const w=windows.get(id);if(!w)return;w.endResize?.();w.maximized=!w.maximized;w.el.classList.toggle('maximized',w.maximized);if(!w.maximized)fitWindow(w);const b=$('[data-control=maximize]',w.el);b.innerHTML=symbol(w.maximized?'restore':'maximize');b.setAttribute('aria-label',w.maximized?'还原':'最大化');}
+// Keep normal window bounds separate from maximized and minimized presentation.
+const resizeDirections = {
+  n: '上边缘', ne: '右上角', e: '右边缘', se: '右下角',
+  s: '下边缘', sw: '左下角', w: '左边缘', nw: '左上角'
+};
+let activeResize = null;
+const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
+function desktopBounds() {
+  const edge = parseFloat(getComputedStyle(root).getPropertyValue('--gap-edge')) || 12;
+  const taskTop = $('#taskbar').getBoundingClientRect().top;
+  return {left: edge, top: edge, right: Math.max(edge + 1, innerWidth - edge),
+    bottom: Math.max(edge + 1, Math.min(innerHeight - edge, taskTop - edge))};
+}
+function readWindowBounds(win) {
+  const value = name => parseFloat(win.el.style.getPropertyValue('--window-' + name));
+  return {x: value('x'), y: value('y'), width: value('w'), height: value('h')};
+}
+function applyWindowBounds(win, bounds) {
+  for (const [name, value] of Object.entries({x: bounds.x, y: bounds.y, w: bounds.width, h: bounds.height})) {
+    win.el.style.setProperty('--window-' + name, value + 'px');
+  }
+}
+function windowLimits(win, area = desktopBounds()) {
+  const sizes = {files: [420, 300], settings: [360, 300], calculator: [280, 340], calendar: [320, 320]};
+  const [width, height] = sizes[win.id] || [280, 220];
+  return {area, minWidth: Math.min(width, area.right - area.left),
+    minHeight: Math.min(height, area.bottom - area.top)};
+}
+function fitWindow(win) {
+  const {area, minWidth, minHeight} = windowLimits(win);
+  const bounds = readWindowBounds(win);
+  bounds.width = clamp(bounds.width, minWidth, area.right - area.left);
+  bounds.height = clamp(bounds.height, minHeight, area.bottom - area.top);
+  bounds.x = clamp(bounds.x, area.left, area.right - bounds.width);
+  bounds.y = clamp(bounds.y, area.top, area.bottom - bounds.height);
+  applyWindowBounds(win, bounds);
+  return bounds;
+}
+function resizedBounds(start, direction, dx, dy, limits) {
+  const {area, minWidth, minHeight} = limits;
+  let left = start.x, top = start.y, right = start.x + start.width, bottom = start.y + start.height;
+  if (direction.includes('e')) right = clamp(right + dx, left + minWidth, area.right);
+  if (direction.includes('w')) left = clamp(left + dx, area.left, right - minWidth);
+  if (direction.includes('s')) bottom = clamp(bottom + dy, top + minHeight, area.bottom);
+  if (direction.includes('n')) top = clamp(top + dy, area.top, bottom - minHeight);
+  return {x: left, y: top, width: right - left, height: bottom - top};
+}
+function installWindowResize(win) {
+  fitWindow(win);
+  for (const [direction, label] of Object.entries(resizeDirections)) {
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'resize-handle';
+    handle.dataset.resize = direction;
+    handle.setAttribute('aria-label', '调整窗口' + label);
+    handle.title = '拖拽调整窗口大小；方向键调整，Shift 精细调整';
+    win.el.append(handle);
+    handle.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || event.isPrimary === false || win.maximized || win.minimized || win.el.classList.contains('appearing')) return;
+      event.preventDefault();
+      event.stopPropagation();
+      activeResize?.();
+      closeOverlays();
+      focusWindow(win.id);
+      win.el.classList.add('resizing');
+      const start = fitWindow(win), limits = windowLimits(win);
+      const startX = event.clientX, startY = event.clientY;
+      handle.setPointerCapture(event.pointerId);
+      document.body.classList.add('window-resizing');
+      root.style.setProperty('--resize-cursor', getComputedStyle(handle).cursor);
+      const move = current => applyWindowBounds(win, resizedBounds(start, direction, current.clientX - startX, current.clientY - startY, limits));
+      const end = () => {
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', end);
+        handle.removeEventListener('pointercancel', end);
+        handle.removeEventListener('lostpointercapture', end);
+        if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+        win.el.classList.remove('resizing');
+        document.body.classList.remove('window-resizing');
+        root.style.removeProperty('--resize-cursor');
+        if (activeResize === end) activeResize = null;
+        if (win.endResize === end) win.endResize = null;
+      };
+      activeResize = end;
+      win.endResize = end;
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', end);
+      handle.addEventListener('pointercancel', end);
+      handle.addEventListener('lostpointercapture', end);
+    });
+    handle.addEventListener('keydown', event => {
+      if (win.maximized || win.minimized || event.altKey || event.ctrlKey || event.metaKey) return;
+      const vectors = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]};
+      if (!vectors[event.key]) return;
+      event.preventDefault();
+      event.stopPropagation();
+      focusWindow(win.id);
+      const step = event.shiftKey ? 1 : 10, [dx, dy] = vectors[event.key];
+      applyWindowBounds(win, resizedBounds(fitWindow(win), direction, dx * step, dy * step, windowLimits(win)));
+    });
+  }
+}
+function openApp(id,options={}){closeOverlays();if(windows.has(id)){const existing=windows.get(id);if(existing.minimized)restore(id);else focusWindow(id);if(options.folder&&id==='files')renderFiles(existing,options.folder);return existing;}const app=appById(id),el=document.createElement('section');el.className='window appearing';el.dataset.app=id;el.setAttribute('role','dialog');el.setAttribute('aria-label',app.name);const sizes={files:[900,574],settings:[660,540],notes:[510,440],calculator:[330,480],calendar:[430,520],clock:[480,380],terminal:[650,420],music:[440,480]},[w,h]=sizes[id]||[740,510],width=Math.min(w,innerWidth-36),height=Math.min(h,innerHeight-125),offset=(cascade++%5)*25;const left=Math.max(12,Math.min((innerWidth-width)/2+offset-32,innerWidth-width-24)),top=Math.max(12,Math.min((innerHeight-height-85)/2+offset,innerHeight-height-100));el.style.setProperty('--window-x',`${left}px`);el.style.setProperty('--window-y',`${top}px`);el.style.setProperty('--window-w',`${w}px`);el.style.setProperty('--window-h',`${h}px`);el.innerHTML=`<header class="titlebar"><div class="window-title">${art(id)}<span>${app.name}</span></div><div class="window-controls"><button data-control="minimize" aria-label="最小化">${symbol('minus')}</button><button data-control="maximize" aria-label="最大化">${symbol('maximize')}</button><button data-control="close" class="close-window" aria-label="关闭">${symbol('close')}</button></div></header><div class="window-content"></div>`;$('#windows').append(el);const win={id,el,content:$('.window-content',el),minimized:false,maximized:false};windows.set(id,win);el.addEventListener('pointerdown',()=>focusWindow(id));$('[data-control=minimize]',el).onclick=()=>minimize(id);$('[data-control=maximize]',el).onclick=()=>maximize(id);$('[data-control=close]',el).onclick=()=>closeWindow(id);const title=$('.titlebar',el);title.addEventListener('dblclick',e=>{if(!e.target.closest('button'))maximize(id);});title.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button')||win.maximized)return;const rect=el.getBoundingClientRect(),dx=e.clientX-rect.left,dy=e.clientY-rect.top;title.setPointerCapture(e.pointerId);el.classList.add('dragging');const move=event=>{const area=desktopBounds();el.style.setProperty('--window-x',`${clamp(event.clientX-dx,area.left,area.right-rect.width)}px`);el.style.setProperty('--window-y',`${clamp(event.clientY-dy,area.top,area.bottom-rect.height)}px`);};const end=()=>{el.classList.remove('dragging');title.removeEventListener('pointermove',move);title.removeEventListener('pointerup',end);title.removeEventListener('pointercancel',end);};title.addEventListener('pointermove',move);title.addEventListener('pointerup',end);title.addEventListener('pointercancel',end);});renderApp(win,options);installWindowResize(win);focusWindow(id);el.tabIndex=-1;el.focus({preventScroll:true});requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('appearing')));return win;}
 const fileItems=[{name:'从这里开始.txt',place:'文档',date:'今天 09:41',size:'2 KB',icon:'notes',app:'notes'},{name:'灵感与想法.txt',place:'文档',date:'今天 09:28',size:'1 KB',icon:'notes',app:'notes'},{name:'晨雾与山谷.svg',place:'图片',date:'昨天 16:20',size:'24 KB',icon:'photos',app:'photos'},{name:'玻璃与光影.svg',place:'图片',date:'昨天 11:06',size:'18 KB',icon:'photos',app:'photos'}],folders=['文档','图片','下载'],customFolders=[];
 function renderFiles(win,folder='主页'){win.folder=folder;const main=folder==='主页'||folder==='此电脑',items=fileItems.filter(f=>main||f.place===folder);const nav=(name,icon)=>`<button class="sidebar-button ${folder===name?'selected':''}" data-folder="${name}" aria-label="${name}">${symbol(icon)}<span>${name}</span></button>`;win.content.innerHTML=`<div class="explorer-tabs"><div class="explorer-tab">${art('files')}<span>${folder}</span><span>×</span></div><button class="new-window" aria-label="打开便笺">+</button></div><div class="explorer-toolbar"><button class="icon-button files-back" aria-label="返回主页" ${main?'disabled':''}>${symbol('back')}</button><button class="icon-button files-up" aria-label="上一级" ${main?'disabled':''}>${symbol('up')}</button><button class="icon-button files-refresh" aria-label="刷新文件">${symbol('refresh')}</button><div class="breadcrumb">${symbol('home')}<span class="chevron">›</span><span>${folder}</span></div><label class="explorer-search">${symbol('search')}<input placeholder="搜索${folder}" aria-label="搜索当前文件夹"></label></div><div class="explorer-body"><aside class="explorer-sidebar"><div class="sidebar-label">工作空间</div>${nav('主页','home')}${nav('文档','document')}${nav('图片','image')}${nav('下载','download')}<div class="sidebar-space"></div><div class="sidebar-label">设备</div>${nav('此电脑','monitor')}<div class="storage-meter">本地磁盘 (C:)<div></div><span>已用 82 GB / 256 GB</span></div></aside><div class="explorer-main"><div class="explorer-welcome"><div><h1>${main?'主页':folder}</h1><p>${main?'快速访问常用文件夹和最近使用的文件。':'此文件夹中的文件'}</p></div>${symbol('home').replace('<svg ','<svg class="home-symbol" ')}</div>${main?`<div class="content-heading"><h2>快速访问</h2><span>已固定</span></div><div class="folder-grid">${[...folders,...customFolders].map((name,i)=>`<button class="folder-card" data-folder="${name}">${art('files')}<span><strong>${name}</strong><small>${i<2?'2 个项目':'空文件夹'}</small></span></button>`).join('')}</div>`:''}<div class="content-heading"><h2>${main?'最近':'文件'}</h2><span>${items.length} 个项目</span></div><div class="file-results">${items.length?`<table class="file-table"><thead><tr><th>名称</th><th>位置</th><th>修改时间</th><th>大小</th></tr></thead><tbody>${items.map(f=>`<tr data-file="${f.name}" data-open-app="${f.app}" tabindex="0" aria-label="打开 ${f.name}"><td><span class="file-name">${art(f.icon)}${f.name}</span></td><td>${f.place}</td><td>${f.date}</td><td>${f.size}</td></tr>`).join('')}</tbody></table>`:`<div class="empty-folder">${art('files')}<p>这里还没有文件</p><small>给下一个好想法留一点空间。</small></div>`}</div></div></div><footer class="explorer-status"><span>${items.length} 个项目</span><span>本地工作空间</span></footer>`;$$('[data-folder]',win.content).forEach(b=>b.onclick=()=>renderFiles(win,b.dataset.folder));$('.files-back',win.content).onclick=()=>renderFiles(win);$('.files-up',win.content).onclick=()=>renderFiles(win);$('.files-refresh',win.content).onclick=()=>{renderFiles(win,folder);toast('文件已刷新');};$('.new-window',win.content).onclick=()=>openApp('notes');$$('[data-file]',win.content).forEach(row=>{row.onclick=()=>{$$('[data-file]',win.content).forEach(r=>r.classList.toggle('selected',r===row));$('.explorer-status span',win.content).textContent=`已选择 ${row.dataset.file}`;};row.ondblclick=()=>openApp(row.dataset.openApp);row.onkeydown=e=>{if(e.key==='Enter')openApp(row.dataset.openApp);};});$('.explorer-search input',win.content).oninput=e=>{const term=e.target.value.toLowerCase();$$('[data-file]',win.content).forEach(row=>row.hidden=!row.dataset.file.toLowerCase().includes(term));$('.explorer-status span',win.content).textContent=`${$$('[data-file]:not([hidden])',win.content).length} 个项目`;};}
 function renderSettings(win){win.content.innerHTML=`<div class="app-page"><span class="eyebrow">MAKE IT YOURS</span><h1>设置</h1><p>个性化、账户和系统设置。</p><div class="settings-profile"><span class="avatar">L</span><div><strong>本地用户</strong><small>Windows 12 · 浏览器仿真桌面</small></div></div><div class="settings-row">${symbol('sun')}<div><strong>外观</strong><small>为此刻的你，选择适合的明暗。</small><div class="theme-options"><button class="theme-option" data-theme-choice="light"><span class="theme-preview"></span>浅色</button><button class="theme-option" data-theme-choice="dark"><span class="theme-preview night"></span>深色</button></div></div></div><div class="settings-row">${symbol('moon')}<div><strong>专注模式</strong><small>暂时收起通知，专注于当下。</small></div><button class="switch settings-focus" role="switch" aria-label="专注模式" aria-checked="${$('#focus-toggle').getAttribute('aria-checked')}"></button></div><div class="settings-row">${symbol('monitor')}<div><strong>关于这台设备</strong><small>原生 HTML / CSS / JavaScript · 无外部资源</small></div></div></div>`;$$('[data-theme-choice]',win.content).forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice==='dark'));setTheme(root.classList.contains('dark'));$('.settings-focus',win.content).onclick=toggleFocus;}
@@ -184,6 +286,6 @@ $('#desktop').addEventListener('contextmenu',e=>{if(e.target.closest('.window,.d
 $$('[data-context]').forEach(b=>b.onclick=()=>{closeOverlays();switch(Number(b.dataset.context)){case 0:document.body.classList.add('refreshing');setTimeout(()=>document.body.classList.remove('refreshing'),duration('normal'));toast('桌面已刷新');break;case 1:customFolders.push(`新建文件夹${customFolders.length?' ('+(customFolders.length+1)+')':''}`);const w=openApp('files');renderFiles(w);toast('已在仿真工作空间中新建文件夹');break;default:openApp('settings');}});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.overlay,#taskbar'))closeOverlays();});
 document.addEventListener('keydown',e=>{if(document.body.classList.contains('is-locked')){const power=$('#power-menu.open');if(e.key==='Escape'&&power){e.preventDefault();closeOverlays();$('#login-power').focus();}else if(e.key==='Escape'){e.preventDefault();showWelcome();}else if(e.key==='Tab'){const scope=power||$('#lock-screen'),items=$$('input,button:not(:disabled)',scope).filter(el=>el.getClientRects().length&&!el.hidden),first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();}return;}if(e.key==='Escape'){const open=$('.overlay.open');if(open){closeOverlays();$('#start-button').focus();}else if(!$('#lock-screen').hidden){$('#lock-screen').hidden=true;$('#start-button').focus();}return;}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(!$('#start-menu').classList.contains('open'))toggleOverlay('start-menu');else $('#start-search').focus();}const panel=$('.overlay.open');if(panel&&e.key==='Tab'){const focusable=$$('button:not(:disabled),input,[tabindex="0"]',panel).filter(el=>!el.closest('[inert]')&&!el.hidden);if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}if(e.key==='F5'&&!e.ctrlKey){e.preventDefault();toast('桌面已刷新');}});
-let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);closeOverlays();resizeTimer=setTimeout(()=>windows.forEach(w=>{if(w.maximized||innerWidth<768)return;const r=w.el.getBoundingClientRect();w.el.style.setProperty('--window-x',`${Math.max(12,Math.min(r.left,innerWidth-r.width-12))}px`);w.el.style.setProperty('--window-y',`${Math.max(12,Math.min(r.top,innerHeight-125))}px`);}),duration('normal'));});
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);activeResize?.();closeOverlays();resizeTimer=setTimeout(()=>windows.forEach(w=>{if(!w.maximized)fitWindow(w);}),duration('normal'));});
 function updateClock(){const now=new Date();$('#welcome-time').textContent=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});$('#welcome-date').textContent=now.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'});$('#task-time').textContent=now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});$('#task-date').textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'});$('#clock-button').setAttribute('aria-label',`${now.toLocaleString('zh-CN')}，打开通知中心`);}updateClock();setInterval(updateClock,1000);showWelcome();
 })();
