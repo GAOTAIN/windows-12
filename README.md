@@ -2,11 +2,26 @@
 
 # Windows 12 网页桌面仿真
 
-版本 **1.7**。使用原生 HTML、CSS 和 JavaScript 构建的交互式桌面，采用接近 Windows 11 的界面与 Fluent Glass 材质。
+版本 **1.8**。使用原生 HTML、CSS 和 JavaScript 构建的交互式桌面，采用接近 Windows 11 的界面与 Fluent Glass 材质。
 
 ## 运行
 
-下载项目或 Release 压缩包，解压后用现代浏览器打开 `index.html`。无需安装依赖或构建。桌面功能可离线使用；访问外部网站和搜索需要联网。
+下载项目或 Release 压缩包，解压后用现代浏览器打开 `index.html`。也可直接下载 Release 附件 `windows-12-v1.8.html` 在手机上打开。入口已包含全部 CSS、JS、壁纸与图标，只复制这一个 HTML 也可以启动，无需安装依赖或构建。桌面功能可离线使用；访问外部网站和搜索需要联网。
+
+## 安卓本地打开（v1.8）
+
+- `index.html` 是完整独立入口，避免文件管理器只传递 HTML、却无法读取旁边 CSS／JS 时丢失样式或图标。
+- 开发入口 `index.template.html` 的 CSS／JS 均使用 `./文件名`，没有盘符、站点根路径或资源查询参数。图标与壁纸使用内联 SVG，字体使用系统字体，无 CDN 依赖。
+- 视口固定为 `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no`，按本次移动端要求关闭页面缩放。
+- 手机上的大面积背景模糊、滤镜合成改为稳定的半透明实色表面；亮暗壁纸均有明确底色。SVG 图标各自包含路径和渐变，不依赖隐藏的共享 `<use>` 图标容器。
+- 为旧 WebView 增加颜色、定位、可视高度、隐藏元素与部分 DOM API 兼容处理，适配较小屏幕、横屏及软键盘高度变化。
+- 文件管理器若仅提供静态预览或禁用 JavaScript，请使用其“在浏览器中打开”功能。网页不能替宿主开启 JavaScript 或文件权限。不同本地预览器的存储权限不同，不能保存时请使用正常浏览器；`file://` 与 HTTP 站点的数据也可能相互独立。
+
+本地 URL 的行为取决于浏览器／WebView，`file://`、`content://` 的资源权限与 HTTP 页面不同，参见 [Android 本地内容说明](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content) 和 [Chromium WebView 兼容性文档](https://chromium.googlesource.com/chromium/src/+/HEAD/android_webview/docs/web-platform-compatibility.md)。独立 HTML 用于减少这些差异带来的启动依赖；目前没有安卓真机实测结果。
+
+## 修改与重新打包
+
+页面结构在 `index.template.html`，样式和逻辑仍分别维护在 `styles.css` 与各 JS 文件中。修改后运行 `python -B build.py`，自动更新交付入口 `index.html` 与图标模块 `icons.js`；`python -B build.py --check` 可检查生成文件是否同步。构建工具仅使用 Python 标准库，直接使用现成的 `index.html` 不需要 Python。
 
 ## 锁屏与登录
 
@@ -144,7 +159,11 @@ exit /b 0
 
 ## 项目文件
 
-- `index.html`：页面结构、SVG 图标与壁纸。
+- `index.html`：自动生成的独立 HTML，内含所有启动资源。
+- `index.template.html`：页面结构、SVG 图标与壁纸的开发源文件。
+- `build.py`：生成独立入口与图标模块。
+- `compat.js`：移动视口及部分 WebView API 兼容处理。
+- `icons.js`：自动生成的独立 SVG 图标。
 - `styles.css`：设计 tokens、主题、动效与响应式布局。
 - `app.js`：锁屏、登录、窗口管理及应用交互。
 - `account.js`：本地密码保存、登录校验及账户登录选项。

@@ -124,8 +124,7 @@ global.initWorkspaceUI=function(runtime){
         if(!node||fs.isTrashed(node.id)){closeWindow(win.id);continue;}
         $('.window-title span',win.el).textContent=node.name;win.el.setAttribute('aria-label',node.name);
         const run=$('.run-batch',win.content);if(run)run.hidden=!isBatch(node);
-        const use=$('.window-title use',win.el);if(use)use.setAttribute('href','#i-'+(isBatch(node)?'batch':'text'));
-        const task=document.querySelector('.task-app[data-app="'+win.id+'"] use');if(task)task.setAttribute('href','#i-'+(isBatch(node)?'batch':'text'));
+        for(const host of [$(' .window-title',win.el),document.querySelector('.task-app[data-app="'+win.id+'"]')]){const icon=host?.querySelector('.app-art');if(icon){const wrapper=document.createElement('span');wrapper.innerHTML=art(win.id);icon.replaceWith(wrapper.firstElementChild);}}
         const editor=$('.text-file-editor',win.content);if(editor&&document.activeElement!==editor)editor.value=node.content||'';
       }
     }

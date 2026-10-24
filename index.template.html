@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Windows 12 · 原生 HTML、CSS 与 JavaScript 构建的 Fluent Glass 仿真桌面">
+  <title>Windows 12 — 自在，由你</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./compat.js"></script>
+  <script defer src="./filesystem.js"></script>
+  <script defer src="./batch.js"></script>
+  <script defer src="./workspace-ui.js"></script>
+  <script defer src="./browser.js"></script>
+  <script defer src="./account.js"></script>
+  <script defer src="./profile.js"></script>
+  <script defer src="./icons.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body class="is-locked">
+  <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <linearGradient id="blue" x2="1" y2="1"><stop stop-color="var(--icon-blue-light)"/><stop offset="1" stop-color="var(--icon-blue)"/></linearGradient>
+    <linearGradient id="purple" x2="1" y2="1"><stop stop-color="var(--icon-purple-light)"/><stop offset="1" stop-color="var(--icon-purple)"/></linearGradient>
+    <linearGradient id="folder" x2="0" y2="1"><stop stop-color="var(--icon-yellow-light)"/><stop offset="1" stop-color="var(--icon-yellow)"/></linearGradient>
+    <linearGradient id="aqua" x2="1" y2="1"><stop stop-color="var(--icon-green-light)"/><stop offset="1" stop-color="var(--icon-green)"/></linearGradient>
+    <symbol id="i-start" viewBox="0 0 48 48"><path fill="url(#blue)" d="M6 7h16v16H6zm20 0h16v16H26zM6 27h16v16H6zm20 0h16v16H26z"/></symbol>
+    <symbol id="i-files" viewBox="0 0 48 48"><path fill="var(--icon-yellow)" d="M4 12a4 4 0 014-4h12l5 5h15a4 4 0 014 4v21a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path fill="var(--icon-paper)" d="M8 17h32v8H8z"/><path fill="url(#folder)" d="M4 22h40v16a4 4 0 01-4 4H8a4 4 0 01-4-4z"/><path stroke="var(--icon-yellow-light)" stroke-width="2" d="M8 24h32"/></symbol>
+    <symbol id="i-text" viewBox="0 0 48 48"><path d="M10 4h19l9 9v30H10z" fill="var(--icon-paper)" stroke="var(--icon-silver)" stroke-width="1.2"/><path d="M29 4v10h9" fill="var(--icon-silver)" fill-opacity=".4"/><path d="M16 21h16m-16 6h16m-16 6h16m-16 6h10" stroke="var(--icon-blue)" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-pc" viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="28" rx="4" fill="var(--icon-slate)"/><rect x="7" y="10" width="34" height="21" rx="2" fill="url(#blue)"/><path fill="var(--icon-silver)" d="M20 35h8l2 6h6v3H12v-3h6z"/><path fill="var(--icon-paper)" opacity=".3" d="M7 10h34L7 31z"/></symbol>
+    <symbol id="i-edge" viewBox="0 0 48 48"><path fill="url(#aqua)" d="M43 29c-1 10-11 16-20 15C9 43 3 34 5 23 7 10 18 3 30 6c9 2 15 10 14 18-4-8-15-9-20-5-3 3-1 8 4 10 5 2 10 1 15 0z"/><path fill="url(#blue)" d="M43 29c-6 6-21 6-25-1-4-7 2-17 13-17-10-6-22 0-25 12-3 13 6 21 18 21 8 0 16-4 19-15z"/><path fill="var(--icon-green-light)" d="M5 25C5 12 18 2 31 7c7 3 11 8 13 16-5-9-19-11-28-4-5 3-8 9-8 14z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 48 48"><path fill="var(--icon-silver)" d="m20 3 8 0 2 6 5 3 6-1 4 7-4 5v5l4 5-4 7-6-1-5 3-2 5h-8l-2-5-5-3-6 1-4-7 4-5v-5l-4-5 4-7 6 1 5-3z" transform="translate(0 -1) scale(1 .96)"/><circle cx="24" cy="24" r="12" fill="var(--icon-slate)"/><circle cx="24" cy="24" r="8" fill="url(#blue)"/></symbol>
+    <symbol id="i-notes" viewBox="0 0 48 48"><rect x="7" y="5" width="34" height="39" rx="5" fill="url(#folder)"/><path fill="var(--icon-yellow-light)" d="M7 10a5 5 0 015-5h24a5 5 0 015 5v7H7z"/><path stroke="var(--icon-ink)" opacity=".35" stroke-width="2" stroke-linecap="round" d="M15 24h18m-18 7h18m-18 7h11"/></symbol>
+    <symbol id="i-photos" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="35" rx="6" fill="url(#blue)"/><circle cx="32" cy="17" r="5" fill="var(--icon-yellow-light)"/><path fill="var(--icon-green-light)" d="m5 34 12-14 13 15 6-6 7 7v1a5 5 0 01-5 5H10a5 5 0 01-5-5z"/></symbol>
+    <symbol id="i-store" viewBox="0 0 48 48"><rect x="6" y="14" width="36" height="30" rx="5" fill="var(--icon-paper)"/><path d="M16 15V11a8 8 0 0116 0v4" fill="none" stroke="var(--icon-silver)" stroke-width="3"/><path fill="url(#blue)" d="M15 22h8v8h-8zm10 0h8v8h-8zm-10 10h8v8h-8zm10 0h8v8h-8z"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="5" fill="var(--icon-slate)"/><path d="m12 18 7 6-7 6m12 0h10" fill="none" stroke="var(--icon-paper)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="37" rx="5" fill="var(--icon-paper)"/><path fill="url(#blue)" d="M5 12a5 5 0 015-5h28a5 5 0 015 5v8H5z"/><path stroke="var(--icon-paper)" stroke-width="3" stroke-linecap="round" d="M14 4v8M34 4v8"/><text x="24" y="36" text-anchor="middle" font-size="16" font-family="Segoe UI,sans-serif" font-weight="600" fill="var(--icon-blue)">18</text></symbol>
+    <symbol id="i-calculator" viewBox="0 0 48 48"><rect x="9" y="4" width="30" height="40" rx="5" fill="var(--icon-silver)"/><rect x="14" y="9" width="20" height="9" rx="2" fill="var(--icon-paper)"/><path fill="var(--icon-slate)" d="M14 23h5v5h-5zm8 0h5v5h-5zm-8 8h5v5h-5zm8 0h5v5h-5z"/><rect x="30" y="23" width="4" height="13" rx="2" fill="url(#blue)"/></symbol>
+    <symbol id="i-music" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="11" fill="url(#purple)"/><path fill="var(--icon-paper)" d="M20 15v17a6 5 0 11-3-4V13l18-4v19a6 5 0 11-3-4V15z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="var(--icon-paper)"/><circle cx="24" cy="24" r="17" fill="url(#blue)"/><path d="M24 13v12l8 5" stroke="var(--icon-paper)" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-batch" viewBox="0 0 48 48"><path d="M10 4h20l9 9v31H10z" fill="var(--icon-paper)" stroke="var(--icon-silver)"/><path d="M30 4v10h9" fill="var(--icon-silver)"/><rect x="5" y="21" width="33" height="22" rx="3" fill="var(--terminal-bg)" stroke="var(--icon-silver)"/><path d="m11 27 5 4-5 4m10 0h9" fill="none" stroke="var(--terminal-text)" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-recycle" viewBox="0 0 48 48"><path d="m9 12 3 29c8 4 16 4 24 0l3-29" fill="var(--icon-paper)" fill-opacity=".7" stroke="var(--icon-silver)" stroke-width="1.5"/><ellipse cx="24" cy="12" rx="15" ry="5" fill="var(--icon-paper)" stroke="var(--icon-silver)" stroke-width="1.5"/><path d="m21 22 4-1 4 6m-1 6-3 3h-7m-2-7-1-4 3-5" fill="none" stroke="var(--icon-green)" stroke-width="2.5" stroke-linecap="round"/><path d="m28 24 1 3 3-1m-10 7 3 3 2-3m-13-7 1-3 3 1" fill="none" stroke="var(--icon-green)" stroke-width="2"/></symbol>
+  </defs></svg>
+  <div class="wallpapers" aria-hidden="true">
+    <div class="wallpaper wallpaper-light"></div><div class="wallpaper wallpaper-dark"></div>
+    <svg class="bloom" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><defs>
+      <linearGradient id="fold" x1="0" y1="0" x2="1" y2=".75"><stop stop-color="var(--bloom-a)"/><stop offset=".28" stop-color="var(--bloom-b)"/><stop offset=".48" stop-color="var(--bloom-c)"/><stop offset=".76" stop-color="var(--bloom-d)"/><stop offset="1" stop-color="var(--ridge-a)"/></linearGradient>
+      <linearGradient id="fold-inner" x1=".15" y1="0" x2=".9" y2="1"><stop stop-color="var(--ridge-a)"/><stop offset=".35" stop-color="var(--ridge-b)"/><stop offset=".7" stop-color="var(--ridge-c)"/><stop offset="1" stop-color="var(--ridge-d)"/></linearGradient>
+      <radialGradient id="fold-center"><stop stop-color="var(--bloom-d)"/><stop offset="1" stop-color="var(--ridge-a)"/></radialGradient>
+      <path id="fold-petal" d="M0 135C-165 125-338 20-294-170C-270-300-112-397 26-313C-111-254-156-127-80-21C-4 86 162 73 223-35C236 73 133 168 0 135Z"/>
+      <path id="fold-lip" d="M26-313C-111-254-156-127-80-21C-4 86 162 73 223-35C184 126-16 144-121 12C-225-119-151-292 26-313Z"/>
+    </defs>
+    <g transform="translate(905 570) scale(1.35 1.1)">
+      <ellipse cx="0" cy="145" rx="380" ry="135" fill="url(#fold-center)" opacity=".35"/>
+      <g transform="rotate(-108)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <g transform="rotate(-64)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <g transform="rotate(-20)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <g transform="rotate(24)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <g transform="rotate(68)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <g transform="translate(3 30) rotate(112) scale(.86)"><use href="#fold-petal" fill="url(#fold)"/><use href="#fold-lip" fill="url(#fold-inner)"/></g>
+      <path d="M-370 105C-250 330 110 362 339 132C220 215-18 219-160 116C-225 68-282 74-370 105Z" fill="url(#fold)"/>
+      <path d="M-370 105C-250 330 110 362 339 132C205 284-74 280-233 170Z" fill="url(#fold-inner)"/>
+    </g></svg>
+  </div>
+  <main id="desktop" aria-label="Windows 12 桌面"><div id="desktop-icons" class="desktop-icons"></div><div class="desktop-signature" aria-hidden="true"><span>Windows <b>12</b></span><small>自在，由你。</small></div><div id="windows" class="windows-layer"></div></main>
+  <div id="desktop-dimmer" class="desktop-dimmer"></div>
+  <section id="start-menu" class="glass overlay start-menu" aria-label="开始菜单" inert>
+    <label class="search-field glass"><span data-symbol="search"></span><input id="start-search" placeholder="搜索应用、设置和文件" autocomplete="off" aria-label="搜索应用和文件"><kbd>Ctrl K</kbd></label>
+    <div class="section-heading"><h2>固定</h2><button id="all-apps">所有应用 <span>›</span></button></div>
+    <div class="start-app-area"><div id="start-apps" class="start-apps"></div><p class="search-empty">搜索应用和文件</p></div>
+    <div class="start-footer"><button id="profile-button" class="profile-button"><span class="avatar" data-profile-avatar></span><span><span data-profile-name>本地用户</span><small>本地账户</small></span></button><button id="power-button" class="icon-button" aria-label="电源" data-symbol="power"></button></div>
+  </section>
+  <section id="notification-center" class="glass overlay notification-center" aria-label="通知中心" inert>
+    <div class="section-heading"><h2>通知中心</h2><button id="clear-notifications">全部清除</button></div>
+    <div id="notification-list"><article class="notification"><div><span class="notification-app">系统 · Windows 12</span><time>刚刚</time></div><h3>你的新桌面，已就绪</h3><p>从开始菜单打开应用，让灵感自然发生。</p></article><article class="notification"><div><span class="notification-app">便笺</span><time>5 分钟前</time></div><h3>留住一闪而过的想法</h3><p>便笺会自动保存在此浏览器，下次回来继续。</p></article></div>
+    <div class="notification-bottom"><span data-symbol="moon"></span><span>专注当下，少一点打扰</span><button id="focus-toggle" class="switch" role="switch" aria-checked="false" aria-label="专注模式"></button></div>
+  </section>
+  <div id="context-menu" class="glass overlay context-menu" role="menu" aria-label="桌面菜单" inert></div>
+  <div id="power-menu" class="glass overlay power-menu" aria-label="电源选项" inert><p>此桌面在浏览器中运行</p><button id="lock-desktop" data-symbol-before="lock">锁定桌面</button><button id="restart-desktop" data-symbol-before="refresh">重新开始</button></div>
+  <nav id="taskbar" class="glass taskbar" aria-label="任务栏">
+    <button id="start-button" class="start-button icon-button glass" aria-label="开始" aria-controls="start-menu" aria-expanded="false"><svg><use href="#i-start"/></svg></button>
+    <button id="task-search" class="task-search" aria-label="搜索"><span data-symbol="search"></span><span class="search-label">搜索</span><span class="search-shortcut">Ctrl K</span></button>
+    <div class="task-divider"></div><div id="task-apps" class="task-apps"></div><div class="task-divider tray-divider"></div>
+    <div class="system-tray"><button id="quick-settings" class="tray-group" aria-label="网络、音量和电池" aria-expanded="false"><span data-symbol="wifi"></span><span data-symbol="volume"></span><span data-symbol="battery"></span></button><button id="theme-toggle" class="icon-button theme-toggle" aria-label="切换到深色主题" data-symbol="sun"></button></div>
+    <button id="clock-button" class="clock-button" aria-label="打开通知中心" aria-controls="notification-center" aria-expanded="false"><time id="task-time"></time><time id="task-date"></time></button>
+  </nav>
+  <section id="quick-panel" class="glass overlay quick-panel" aria-label="快速设置" inert><div class="section-heading"><h2>快速设置</h2><span>本地仿真</span></div><div class="quick-grid"><button class="quick-tile active" id="wifi-toggle" aria-pressed="true"><span data-symbol="wifi"></span>WLAN<small>已连接</small></button><button class="quick-tile" id="quiet-toggle" aria-pressed="false"><span data-symbol="moon"></span>勿扰模式<small>已关闭</small></button></div><label class="range-row"><span data-symbol="volume"></span><input id="volume-range" type="range" min="0" max="100" value="68" aria-label="音量"><output>68%</output></label><label class="range-row"><span data-symbol="sun"></span><input id="brightness-range" type="range" min="40" max="100" value="100" aria-label="桌面亮度"><output>100%</output></label></section>
+  <div id="toast" class="glass toast" role="status" aria-live="polite"></div>
+  <section id="lock-screen" class="lock-screen" data-phase="cover" role="dialog" aria-modal="true" aria-label="锁屏，按任意键进入登录" tabindex="-1">
+    <header class="welcome-brand"><svg aria-hidden="true"><use href="#i-start"/></svg><span>Windows <b>12</b></span></header>
+    <div class="welcome-clock"><time id="welcome-time" aria-label="当前时间">00:00</time><p id="welcome-date"></p></div>
+    <div class="lock-card" inert>
+      <div class="welcome-avatar" aria-hidden="true" data-profile-avatar></div>
+      <h1 id="welcome-title">本地用户</h1>
+      <p>你好，欢迎回来。</p>
+      <form id="login-form" novalidate>
+        <label class="password-label" for="login-password">密码</label>
+        <div class="glass password-field">
+          <span data-symbol="lock" aria-hidden="true"></span>
+          <input id="login-password" name="password" type="password" placeholder="密码" autocomplete="off" spellcheck="false" required aria-describedby="login-hint login-error">
+          <button id="password-visibility" class="icon-button" type="button" aria-label="显示密码" aria-pressed="false" data-symbol="eye"></button>
+          <button id="unlock-button" class="icon-button login-submit" type="submit" aria-label="登录" title="登录"><span aria-hidden="true">→</span></button>
+        </div>
+        <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
+        <button id="login-options" class="login-options" type="button" aria-expanded="false" aria-controls="login-hint">登录选项</button>
+        <small id="login-hint" class="welcome-hint">初始密码：<span>123456</span></small>
+      </form>
+    </div>
+    <p class="lock-prompt">按任意键或点击屏幕登录</p>
+    <footer class="welcome-footer" inert><small>简体中文</small><div class="login-system"><span data-symbol="wifi" role="img" aria-label="WLAN 已连接"></span><button id="login-accessibility" class="icon-button" aria-label="辅助功能" title="辅助功能" data-symbol="person"></button><button id="login-power" class="icon-button" aria-label="电源" title="电源" data-symbol="power"></button></div></footer>
+  </section>
+  <noscript><p class="boot-message">此预览器未启用 JavaScript，请使用浏览器打开本文件。</p></noscript>
+  <p id="boot-error" class="boot-message" hidden>页面未能启动。请使用已启用 JavaScript 的较新浏览器打开本文件。</p>
+</body>
+</html>
