@@ -392,3 +392,6 @@ body.file-dragging,body.file-dragging * {cursor:grabbing!important;user-select:n
 .password-dialog input:disabled {opacity:.65}
 .password-dialog footer {padding-top:14px}
 @media(max-width:480px) {.settings-signin {padding:7px 9px;gap:8px}.signin-password-options {padding:14px;align-items:flex-start}.signin-password-toggle {padding:15px}.password-dialog {padding:20px}.settings-breadcrumb {margin-bottom:16px}}
+
+/* Batch files use the same command surface and keyboard controls as Terminal. */
+.batch-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface-soft);font-size:12px}.batch-state{flex:1;min-width:100px;overflow-wrap:anywhere}.batch-toolbar button{padding:5px 10px;border:1px solid var(--line);background:var(--surface-soft)}.batch-toolbar kbd{font:10px Consolas,monospace;color:var(--muted)}.terminal{min-height:0}.text-file-toolbar{flex-wrap:wrap}.text-file-toolbar button[hidden],.batch-toolbar button[hidden]{display:none}

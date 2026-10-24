@@ -2,7 +2,7 @@
 
 # Windows 12 网页桌面仿真
 
-版本 **1.5**。使用原生 HTML、CSS 和 JavaScript 构建的交互式桌面，采用接近 Windows 11 的界面与 Fluent Glass 材质。
+版本 **1.6**。使用原生 HTML、CSS 和 JavaScript 构建的交互式桌面，采用接近 Windows 11 的界面与 Fluent Glass 材质。
 
 ## 运行
 
@@ -45,6 +45,30 @@
 | 恢复最小化窗口 | 点击任务栏对应图标 |
 | 切换主题 | 点击任务栏太阳／月亮按钮 |
 | 锁定桌面 | 开始菜单 → 电源 → 锁定桌面 |
+
+## 批处理文件（v1.6）
+
+1. 桌面空白处右键 → 新建 → Windows 批处理文件 (.bat)，或 Windows 命令脚本 (.cmd)。资源管理器的“新建”也提供这两种文件。
+2. 右键文件 → 编辑，在记事本中修改，自动保存；点击“运行”或双击文件，在终端运行。新建文件自带欢迎示例。
+3. 现有文本文档可用 F2 改成 `.bat`／`.cmd`，图标、类型和默认打开方式随之更新；后缀不区分大小写。改回 `.txt` 后双击编辑。
+4. 支持 `@echo off/on`、`echo`、`echo.`、`rem`／`::` 注释、`cls`、`title`、`pause`、`set 名称=值`、`%名称%`、`%~nx0`、`%ERRORLEVEL%`、`dir`／`dir /b`、`date`、`time`、`whoami`、`start`／`open` 内置应用、`theme`、`exit /b [代码]`。
+5. `pause` 后在终端输入框按任意键或点击“继续运行”；Ctrl+C 或“停止”可中止。再次打开脚本会停止上一次运行，关闭终端也会停止。
+6. 文件可复制、移动、下载、删除和还原，刷新后保留。下载保留原后缀和 UTF-8 文本。
+
+示例：
+
+```bat
+@echo off
+title Windows 12
+set name=Windows 12
+echo 欢迎使用 %name%！
+echo 当前脚本：%~nx0
+start calc
+pause
+exit /b 0
+```
+
+这些脚本在网页仿真终端内执行常用命令，`dir` 显示脚本所在的虚拟文件夹；`start calc`、`start notepad`、`start explorer` 对应内置计算器、便笺和资源管理器。不会调用电脑的 CMD 或运行系统程序。不支持管道、重定向、循环、条件跳转和完整 Windows 批处理语法，未支持命令会显示行号提示。单份脚本最多 1000 行、100000 字符。
 
 ## 更改登录密码（v1.5）
 
@@ -113,6 +137,7 @@
 - `styles.css`：设计 tokens、主题、动效与响应式布局。
 - `app.js`：锁屏、登录、窗口管理及应用交互。
 - `account.js`：本地密码保存、登录校验及账户登录选项。
+- `batch.js`：批处理后缀关联、命令解释与仿真终端。
 - `browser.js`：网址解析、搜索、标签页、导航记录和嵌入页面。
 - `tests/browser.test.cjs`：网址与导航行为测试，运行 `node tests/browser.test.cjs`。
 - `filesystem.js`：可持久化的文件树、文本、快捷方式与回收站。
