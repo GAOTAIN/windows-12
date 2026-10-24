@@ -6,13 +6,14 @@
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Windows 12 · 原生 HTML、CSS 与 JavaScript 构建的 Fluent Glass 仿真桌面">
   <title>Windows 12 — 自在，由你</title>
-  <link rel="stylesheet" href="styles.css?v=1.6">
-  <script defer src="filesystem.js?v=1.6"></script>
-  <script defer src="batch.js?v=1.6"></script>
-  <script defer src="workspace-ui.js?v=1.6"></script>
-  <script defer src="browser.js?v=1.6"></script>
-  <script defer src="account.js?v=1.6"></script>
-  <script defer src="app.js?v=1.6"></script>
+  <link rel="stylesheet" href="styles.css?v=1.7">
+  <script defer src="filesystem.js?v=1.7"></script>
+  <script defer src="batch.js?v=1.7"></script>
+  <script defer src="workspace-ui.js?v=1.7"></script>
+  <script defer src="browser.js?v=1.7"></script>
+  <script defer src="account.js?v=1.7"></script>
+  <script defer src="profile.js?v=1.7"></script>
+  <script defer src="app.js?v=1.7"></script>
 </head>
 <body class="is-locked">
   <svg class="svg-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -64,7 +65,7 @@
     <label class="search-field glass"><span data-symbol="search"></span><input id="start-search" placeholder="搜索应用、设置和文件" autocomplete="off" aria-label="搜索应用和文件"><kbd>Ctrl K</kbd></label>
     <div class="section-heading"><h2>固定</h2><button id="all-apps">所有应用 <span>›</span></button></div>
     <div class="start-app-area"><div id="start-apps" class="start-apps"></div><p class="search-empty">搜索应用和文件</p></div>
-    <div class="start-footer"><button id="profile-button" class="profile-button"><span class="avatar">L</span><span>本地用户<small>本地账户</small></span></button><button id="power-button" class="icon-button" aria-label="电源" data-symbol="power"></button></div>
+    <div class="start-footer"><button id="profile-button" class="profile-button"><span class="avatar" data-profile-avatar></span><span><span data-profile-name>本地用户</span><small>本地账户</small></span></button><button id="power-button" class="icon-button" aria-label="电源" data-symbol="power"></button></div>
   </section>
   <section id="notification-center" class="glass overlay notification-center" aria-label="通知中心" inert>
     <div class="section-heading"><h2>通知中心</h2><button id="clear-notifications">全部清除</button></div>
@@ -86,7 +87,7 @@
     <header class="welcome-brand"><svg aria-hidden="true"><use href="#i-start"/></svg><span>Windows <b>12</b></span></header>
     <div class="welcome-clock"><time id="welcome-time" aria-label="当前时间">00:00</time><p id="welcome-date"></p></div>
     <div class="lock-card" inert>
-      <div class="welcome-avatar" aria-hidden="true" data-symbol="person"></div>
+      <div class="welcome-avatar" aria-hidden="true" data-profile-avatar></div>
       <h1 id="welcome-title">本地用户</h1>
       <p>你好，欢迎回来。</p>
       <form id="login-form" novalidate>
